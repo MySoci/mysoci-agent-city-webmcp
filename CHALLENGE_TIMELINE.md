@@ -38,6 +38,18 @@ This file records the chronological provenance of **MySoci Agent City** for The 
 - Refined the About copy to describe this as a standalone challenge prototype exploring a future MySoci agent layer across digital cities and real-world experiences.
 - Replayed the complete flow from a clean reset in the challenge in-app browser at desktop and mobile widths; confirmed no console warnings/errors or horizontal overflow.
 
+## 2026-08-26 — First Vercel production deployment verification
+
+- Created the Vercel project `mysoci-agent-city-webmcp` in the `MySoci` team, targeting the production environment with the existing Vite/pnpm build (`pnpm build`, output `dist`).
+- Deployment id: `dpl_4243avyCXWKc5vqgwkDqMzi3UM6B`.
+- Production URL: `https://mysoci-agent-city-webmcp-q8epaiwf3-my-soci.vercel.app/`.
+- Project alias: `https://mysoci-agent-city-webmcp-my-soci.vercel.app/`.
+- The deployment was created during the 2026-08-26 verification window from the validated application artifact built from commit `0ed8d74a6ab3721ecd8c89a46a9937460fc58fc3`. The deployment API did not expose a more precise creation timestamp in this verification session.
+- Vercel Authentication “Require Log In” was disabled in the free project setting so the challenge URL is publicly reachable. No Password Protection or paid Upgrade was enabled.
+- Pre-deployment lint, tests, production build, diff check, and credential-pattern scan passed. The public page loaded without authentication and the deterministic Judge Mode social flow completed through human approval, fictional invite preparation, cancel, and reset.
+- Production verification remains **blocked**: the in-app browser reported `city-atlas.png` and the fictional avatar image as undecodable (`naturalWidth: 0`), while the same local preview loaded the city asset successfully. The available verification harness also could not independently inspect `document.modelContext` on the deployed page, so a direct production `getTools()`/`executeTool()` proof could not be completed. A follow-up production deployment attempt was rejected by Vercel with HTTP 403 (`You don't have permission to create a Production Deployment for this project`).
+- No commerce, travel, authentication, external API, real-world messaging, GPS, payment, credential, private MySoci code, or private asset was introduced.
+
 ## History policy
 
 - Preserve ordinary chronological commits.

@@ -80,6 +80,21 @@ The draft documents the `execute(input, { signal })` callback shape. During nati
 
 The current model/browser bridge also reports that its low-level `webmcp_list_tools` command is unsupported. The application itself still reported `Native WebMCP`, completed registration, and exercised the registered tools through its own `document.modelContext.getTools()` / `executeTool()` path. Direct low-level tool enumeration is therefore a bridge limitation in this verification runtime, not an application fallback or a spec substitution.
 
+## Public production verification — 2026-08-26
+
+The first Vercel production deployment used the artifact built from commit `0ed8d74a6ab3721ecd8c89a46a9937460fc58fc3`:
+
+- Project: `mysoci-agent-city-webmcp` (team `MySoci`)
+- Deployment: `dpl_4243avyCXWKc5vqgwkDqMzi3UM6B`
+- Production URL: `https://mysoci-agent-city-webmcp-q8epaiwf3-my-soci.vercel.app/`
+- Alias: `https://mysoci-agent-city-webmcp-my-soci.vercel.app/`
+- Environment: production
+- Deployment date: 2026-08-26 (the connector did not return a more precise creation timestamp)
+
+The URL was publicly reachable after the free Vercel Authentication “Require Log In” setting was turned off; no paid protection or billing action was used. The deployed UI rendered without login, exposed the Judge Mode scenarios, showed Agent Activity, and completed the deterministic social meetup flow through participant edit, human meetup approval, fictional invite approval, cancel, and reset. The production UI also preserved the privacy-safe nearby result: Leo was surfaced, city-only Amina and hidden Theo were not returned by the nearby action.
+
+This deployment is not marked as a complete WebMCP production pass. In the available in-app browser, the deployed `city-atlas.png` and fictional avatar image did not decode (`naturalWidth: 0`), although the same local preview loaded the city asset. The browser verification harness also reported `document.modelContext` as unavailable to direct page evaluation, while the application status label remained `Native WebMCP`; therefore an independent production `getTools()`/`executeTool()` invocation record cannot be claimed from this session. A follow-up production deployment request was rejected with Vercel HTTP 403 permission error, so the asset and native-bridge findings remain open blockers.
+
 ## Scope boundary
 
 All results come from deterministic local seed data. No login, network service, database, production action, payment, credential, private MySoci material, or external dataset participates in this proof.
