@@ -3,6 +3,9 @@ import type {
   ActivityStatus,
   CityEvent,
   CityState,
+  GroupMeetup,
+  InviteProposal,
+  MeetupDraft,
   SearchEventsInput,
   SocialViewState
 } from "../domain";
@@ -27,6 +30,11 @@ const initialState = (): CityState => ({
     suggestedPeopleIds: [],
     recommendedPlaceIds: []
   },
+  meetup: null,
+  pendingMeetupProposal: null,
+  meetupApprovalGranted: false,
+  pendingInviteProposal: null,
+  inviteApprovalGranted: false,
   activities: []
 });
 
@@ -50,6 +58,7 @@ const searchableText = (event: CityEvent) =>
 export class CityStore {
   private state: CityState = initialState();
   private listeners = new Set<Listener>();
+  private activitySequence = 0;
 
   getSnapshot = () => this.state;
 
@@ -60,6 +69,7 @@ export class CityStore {
 
   reset() {
     this.state = initialState();
+    this.activitySequence = 0;
     this.emit();
   }
 
@@ -120,6 +130,110 @@ export class CityStore {
     this.patch({ pendingConfirmationId: null });
   }
 
+  requestMeetupProposal(proposal: MeetupDraft) {
+    this.patch({
+      pendingMeetupProposal: proposal,
+      meetupApprovalGranted: false,
+      pendingInviteProposal: null,
+      inviteApprovalGranted: false
+    });
+  }
+
+  dismissMeetupProposal() {
+    this.patch({ pendingMeetupProposal: null, meetupApprovalGranted: false });
+  }
+
+  toggleMeetupParticipant(profileId: string) {
+    const proposal = this.state.pendingMeetupProposal;
+    if (!proposal) return;
+    const profileIds = proposal.profileIds.includes(profileId)
+      ? proposal.profileIds.filter((id) => id !== profileId)
+      : [...proposal.profileIds, profileId];
+    this.patch({
+      pendingMeetupProposal: { ...proposal, profileIds },
+      meetupApprovalGranted: false
+    });
+  }
+
+  approveMeetupProposal() {
+    if (!this.state.pendingMeetupProposal) return false;
+    this.patch({ meetupApprovalGranted: true });
+    return true;
+  }
+
+  createMeetupFromApprovedProposal() {
+    const proposal = this.state.pendingMeetupProposal;
+    if (!proposal || !this.state.meetupApprovalGranted) return null;
+    const savedToPlanByMeetup = !this.state.savedEventIds.includes(proposal.eventId);
+    const meetup: GroupMeetup = {
+      ...proposal,
+      id: `meetup-${this.state.activities.length + 1}`,
+      invitationStatuses: Object.fromEntries(
+        proposal.profileIds.map((profileId) => [profileId, "not-invited" as const])
+      ) as GroupMeetup["invitationStatuses"],
+      status: "confirmed",
+      savedToPlanByMeetup
+    };
+    this.patch({
+      meetup,
+      savedEventIds: savedToPlanByMeetup
+        ? [...this.state.savedEventIds, proposal.eventId]
+        : this.state.savedEventIds,
+      selectedEventId: proposal.eventId,
+      pendingMeetupProposal: null,
+      meetupApprovalGranted: false
+    });
+    return meetup;
+  }
+
+  requestInviteProposal(proposal: InviteProposal) {
+    this.patch({ pendingInviteProposal: proposal, inviteApprovalGranted: false });
+  }
+
+  dismissInviteProposal() {
+    this.patch({ pendingInviteProposal: null, inviteApprovalGranted: false });
+  }
+
+  approveInviteProposal() {
+    if (!this.state.pendingInviteProposal) return false;
+    this.patch({ inviteApprovalGranted: true });
+    return true;
+  }
+
+  sendInvitesFromApprovedProposal() {
+    const proposal = this.state.pendingInviteProposal;
+    const meetup = this.state.meetup;
+    if (!proposal || !meetup || !this.state.inviteApprovalGranted || proposal.meetupId !== meetup.id) {
+      return null;
+    }
+    const invitationStatuses = { ...meetup.invitationStatuses };
+    proposal.profileIds.forEach((profileId) => {
+      invitationStatuses[profileId] = "pending";
+    });
+    const updatedMeetup = { ...meetup, invitationStatuses };
+    this.patch({ meetup: updatedMeetup, pendingInviteProposal: null, inviteApprovalGranted: false });
+    return updatedMeetup;
+  }
+
+  cancelMeetup() {
+    const meetup = this.state.meetup;
+    if (!meetup) return false;
+    const invitationStatuses = Object.fromEntries(
+      Object.keys(meetup.invitationStatuses).map((profileId) => [profileId, "cancelled" as const])
+    ) as GroupMeetup["invitationStatuses"];
+    this.patch({
+      meetup: { ...meetup, status: "cancelled", invitationStatuses },
+      savedEventIds: meetup.savedToPlanByMeetup
+        ? this.state.savedEventIds.filter((id) => id !== meetup.eventId)
+        : this.state.savedEventIds,
+      pendingMeetupProposal: null,
+      meetupApprovalGranted: false,
+      pendingInviteProposal: null,
+      inviteApprovalGranted: false
+    });
+    return true;
+  }
+
   removeSavedEvent(eventId: string) {
     this.patch({
       savedEventIds: this.state.savedEventIds.filter((id) => id !== eventId)
@@ -135,7 +249,8 @@ export class CityStore {
     summary: string,
     detail: string
   ) {
-    const id = `${toolName}-${this.state.activities.length + 1}`;
+    this.activitySequence += 1;
+    const id = `${toolName}-${this.activitySequence}`;
     const entry: ActivityEntry = {
       id,
       toolName,

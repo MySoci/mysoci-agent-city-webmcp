@@ -15,11 +15,11 @@ The accepted design references are [`concept-desktop.png`](./design/concept-desk
 
 ## Visible-copy lock
 
-The first viewport may show: “MySoci Agent City”, “A MySoci prototype”, “Discover”, “Plan”, “About”, “Judge Mode”, “New York, this Saturday”, “Discover the city together.”, the three seeded event names, “People + places for this plan”, “Privacy-aware”, “People to ask”, “Good places to meet”, “Agent Activity”, “Saturday plan”, the social action labels, the example prompt, “Send”, and confirmation/undo controls required by the workflow.
+The first viewport may show: “MySoci Agent City”, “A MySoci prototype”, “Discover”, “Plan”, “About”, “Judge Mode”, “New York, this Saturday”, “Discover the city together.”, the three seeded event names, “People + places for this plan”, “Privacy-aware”, “People to ask”, “Good places to meet”, “Agent Activity”, “Saturday plan”, “Social meetup”, “Prepare meetup”, the Judge Mode scenario labels, the example prompt, “Send”, and confirmation/cancel controls required by the workflow.
 
 ## Responsive behavior
 
 - Desktop: discovery canvas and activity rail share the viewport.
-- Mobile: map, selected event, social discovery, plan, activity, then prompt composer stack vertically.
+- Mobile: map, selected event, social discovery, plan, activity, meetup review/summary, then prompt composer and Judge Mode scenarios stack vertically.
 - Minimum touch target: 44 px.
 - No horizontal scrolling at 390–430 px.

@@ -17,6 +17,7 @@ interface SocialDiscoveryProps {
   isBusy: boolean;
   onFindNearby: () => void;
   onSuggest: () => void;
+  onPrepareMeetup: () => void;
   onInspectProfile: (profileId: string) => void;
 }
 
@@ -36,6 +37,7 @@ export const SocialDiscovery = ({
   isBusy,
   onFindNearby,
   onSuggest,
+  onPrepareMeetup,
   onInspectProfile
 }: SocialDiscoveryProps) => {
   const orderedPeople = [...suggestedPeopleIds, ...nearbyFriendIds]
@@ -148,6 +150,14 @@ export const SocialDiscovery = ({
         </button>
         <button type="button" className="button button--primary" onClick={onSuggest} disabled={isBusy}>
           <SparkMini /> Suggest for this plan
+        </button>
+        <button
+          type="button"
+          className="button button--quiet"
+          onClick={onPrepareMeetup}
+          disabled={isBusy || !suggestedPeopleIds.length || !recommendedPlaceIds.length}
+        >
+          <UsersIcon /> Prepare meetup
         </button>
       </div>
     </section>

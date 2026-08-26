@@ -23,7 +23,9 @@ describe("WebMCP city tools", () => {
       "get_profile",
       "search_places",
       "find_nearby_friends",
-      "suggest_people_for_plan"
+      "suggest_people_for_plan",
+      "create_group_meetup",
+      "send_event_invites"
     ]);
     expect(tools?.find((tool) => tool.name === "search_events")?.annotations).toEqual({
       readOnlyHint: true,
@@ -41,6 +43,22 @@ describe("WebMCP city tools", () => {
     ]) {
       expect(tools?.find((tool) => tool.name === name)?.annotations?.readOnlyHint).toBe(true);
     }
+    expect(tools?.find((tool) => tool.name === "create_group_meetup")?.annotations).toEqual({
+      readOnlyHint: false,
+      untrustedContentHint: false
+    });
+    expect(tools?.find((tool) => tool.name === "send_event_invites")?.annotations).toEqual({
+      readOnlyHint: false,
+      untrustedContentHint: false
+    });
+    expect(tools?.find((tool) => tool.name === "create_group_meetup")?.inputSchema).toMatchObject({
+      required: ["confirmed"],
+      additionalProperties: false
+    });
+    expect(tools?.find((tool) => tool.name === "send_event_invites")?.inputSchema).toMatchObject({
+      required: ["confirmed"],
+      additionalProperties: false
+    });
 
     registration.cleanup();
     expect(await document.modelContext?.getTools()).toEqual([]);
@@ -205,5 +223,112 @@ describe("WebMCP city tools", () => {
       eventId: "framewalk-nyc",
       suggestedPeopleIds: expect.arrayContaining(["maya-chen"])
     });
+  });
+
+  it("requires a visible human approval and carries human participant edits into meetup creation", async () => {
+    await registerCityTools(store);
+    const tools = await document.modelContext?.getTools();
+    const createTool = tools?.find((tool) => tool.name === "create_group_meetup");
+
+    await expect(
+      document.modelContext?.executeTool(createTool!, {
+        eventId: "neural-nights",
+        placeId: "signal-garden",
+        profileIds: ["leo-ortiz"],
+        confirmed: true
+      })
+    ).rejects.toThrow("Human confirmation is required");
+    expect(store.getSnapshot().meetup).toBeNull();
+
+    const pendingSerialized = await document.modelContext?.executeTool(createTool!, {
+      eventId: "neural-nights",
+      placeId: "signal-garden",
+      profileIds: ["leo-ortiz"],
+      confirmed: false
+    });
+    expect(JSON.parse(pendingSerialized ?? "{}")).toMatchObject({
+      status: "confirmation_required",
+      proposal: { profileIds: ["leo-ortiz"] }
+    });
+    expect(store.getSnapshot().pendingMeetupProposal?.profileIds).toEqual(["leo-ortiz"]);
+
+    store.toggleMeetupParticipant("amina-bello");
+    store.approveMeetupProposal();
+    const confirmedSerialized = await document.modelContext?.executeTool(createTool!, {
+      confirmed: true
+    });
+    const confirmed = JSON.parse(confirmedSerialized ?? "{}");
+
+    expect(confirmed.status).toBe("confirmed");
+    expect(store.getSnapshot().meetup?.profileIds).toEqual(["leo-ortiz", "amina-bello"]);
+    expect(store.getSnapshot().savedEventIds).toEqual(["neural-nights"]);
+  });
+
+  it("rejects hidden, busy, and non-friend invite recipients", async () => {
+    await registerCityTools(store);
+    const tools = await document.modelContext?.getTools();
+    const createTool = tools?.find((tool) => tool.name === "create_group_meetup");
+
+    await expect(
+      document.modelContext?.executeTool(createTool!, {
+        eventId: "neural-nights",
+        placeId: "signal-garden",
+        profileIds: ["theo-park"],
+        confirmed: false
+      })
+    ).rejects.toThrow("hidden presence");
+    await expect(
+      document.modelContext?.executeTool(createTool!, {
+        eventId: "neural-nights",
+        placeId: "signal-garden",
+        profileIds: ["ren-ito"],
+        confirmed: false
+      })
+    ).rejects.toThrow("eligible friend");
+  });
+
+  it("gates invite preparation and cancel restores consistent shared state", async () => {
+    await registerCityTools(store);
+    const tools = await document.modelContext?.getTools();
+    const createTool = tools?.find((tool) => tool.name === "create_group_meetup");
+    const inviteTool = tools?.find((tool) => tool.name === "send_event_invites");
+
+    await document.modelContext?.executeTool(createTool!, {
+      eventId: "neural-nights",
+      placeId: "signal-garden",
+      profileIds: ["leo-ortiz"],
+      confirmed: false
+    });
+    store.approveMeetupProposal();
+    await document.modelContext?.executeTool(createTool!, { confirmed: true });
+
+    await expect(
+      document.modelContext?.executeTool(inviteTool!, {
+        profileIds: ["theo-park"],
+        confirmed: false
+      })
+    ).rejects.toThrow("hidden presence");
+
+    await expect(
+      document.modelContext?.executeTool(inviteTool!, { confirmed: true })
+    ).rejects.toThrow("Human approval is required");
+    const pendingSerialized = await document.modelContext?.executeTool(inviteTool!, {
+      confirmed: false
+    });
+    expect(JSON.parse(pendingSerialized ?? "{}")).toMatchObject({
+      status: "confirmation_required",
+      profileIds: ["leo-ortiz"]
+    });
+    expect(store.getSnapshot().meetup?.invitationStatuses["leo-ortiz"]).toBe("not-invited");
+
+    store.approveInviteProposal();
+    await document.modelContext?.executeTool(inviteTool!, { confirmed: true });
+    expect(store.getSnapshot().meetup?.invitationStatuses["leo-ortiz"]).toBe("pending");
+
+    store.cancelMeetup();
+    expect(store.getSnapshot().meetup?.status).toBe("cancelled");
+    expect(store.getSnapshot().meetup?.invitationStatuses["leo-ortiz"]).toBe("cancelled");
+    expect(store.getSnapshot().savedEventIds).toEqual([]);
+    expect(store.getSnapshot().pendingInviteProposal).toBeNull();
   });
 });

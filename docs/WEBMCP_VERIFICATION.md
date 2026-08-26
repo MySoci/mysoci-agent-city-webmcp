@@ -4,7 +4,7 @@ Verified locally on **2026-08-26** against the current WebMCP Community Group dr
 
 ## Native discovery
 
-The page registered seven tools with the native model context:
+The page registered nine tools with the native model context:
 
 | Tool | State | Annotation | Confirmation model |
 | --- | --- | --- | --- |
@@ -15,6 +15,8 @@ The page registered seven tools with the native model context:
 | `search_places` | Read-only | `readOnlyHint: true` | Returns deterministic fictional meetup suggestions |
 | `find_nearby_friends` | Read-only | `readOnlyHint: true` | Same coarse neighborhood + friend + available filters |
 | `suggest_people_for_plan` | Read-only | `readOnlyHint: true` | Composes event, relationship, interests, presence, availability, and places |
+| `create_group_meetup` | State-changing | `readOnlyHint: false` | `confirmed: false` creates an editable proposal; only visible human approval permits `confirmed: true` |
+| `send_event_invites` | State-changing | `readOnlyHint: false` | `confirmed: false` creates an invite review; only visible human approval marks fictional invites pending |
 
 Both input schemas use `additionalProperties: false`, bounded strings and arrays, enums, numeric limits, and required fields where appropriate.
 
@@ -36,7 +38,7 @@ The browser then invoked `save_event_to_plan` with `confirmed: false`. The tool 
 
 ## Automated contract coverage
 
-`src/webmcp/city-tools.test.ts` installs a spec-shaped `document.modelContext`, discovers all seven registered tools, checks read-only annotations, invokes the read-only search, rejects invalid input, verifies the confirmation boundary, verifies save plus undo state, exercises hidden/city-only/nearby privacy boundaries, and verifies that a human-selected event drives a later social recommendation.
+`src/webmcp/city-tools.test.ts` installs a spec-shaped `document.modelContext`, discovers all nine registered tools, checks read-only/state-changing annotations, verifies strict schemas, invokes read-only search, rejects invalid input, verifies both confirmation boundaries and confirmation bypasses, verifies save plus undo state, exercises hidden/city-only/nearby privacy boundaries, rejects hidden/busy/non-friend invite recipients, verifies human participant edits are observed by a later agent call, and verifies cancel restores the shared plan.
 
 ## Social workflow evidence
 
@@ -49,6 +51,20 @@ search_events → search_people → find_nearby_friends → search_places → su
 For the seeded `Neural Nights` event, the UI showed Leo Ortiz as a friend with approximate presence near Brooklyn Navy Yard and Amina Bello as a friend with city-only New York presence. Theo Park, whose presence is hidden, was not surfaced by the nearby or plan-suggestion tools. The same result showed Signal Garden as a fictional meetup place in the event neighborhood. Clicking `View profile` invoked `get_profile` and added its native result to Agent Activity.
 
 After a human changed the event selection to `Framewalk NYC`, the social view reset and a later agent call returned Maya Chen near Meatpacking District plus Cornerroom Café. This proves the agent continued from the human-updated shared selection.
+
+## Confirmed meetup flow evidence
+
+In Judge Mode, the native browser ran:
+
+```text
+search_events → search_people → find_nearby_friends → search_places → suggest_people_for_plan
+→ create_group_meetup(false) → human edits participants → human approves → create_group_meetup(true)
+→ send_event_invites(false) → human approves → send_event_invites(true) → human cancels
+```
+
+The first proposal contained Leo Ortiz and city-only Amina Bello. The human unchecked Amina before approving; the confirmed meetup and the subsequent invite proposal therefore contained only Leo, proving that a later WebMCP call observed the edited shared state. The meetup added `Neural Nights` to the Saturday plan, displayed Signal Garden and `$45`, and showed Leo as `Not invited`. The invite approval changed only Leo's deterministic status to `Invite prepared`. Cancel then marked the meetup and invite `Cancelled` and removed the meetup-added event from the Saturday plan.
+
+The review UI never offers hidden Theo Park as a participant, and tool-level validation rejects Theo, busy/non-friend Ren Ito, and any hidden recipient even if an agent supplies the id directly. City-only Amina is shown only as `New York · city-only`; nearby output contains only the coarse neighborhood label and no coordinates.
 
 ## Current compatibility note
 

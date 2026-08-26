@@ -82,6 +82,29 @@ export interface SocialViewState {
   recommendedPlaceIds: string[];
 }
 
+export type MeetupStatus = "confirmed" | "cancelled";
+export type InvitationStatus = "not-invited" | "pending" | "cancelled";
+
+export interface MeetupDraft {
+  eventId: string;
+  placeId: string;
+  profileIds: string[];
+  time: string;
+  estimatedCostUsd: number;
+}
+
+export interface GroupMeetup extends MeetupDraft {
+  id: string;
+  invitationStatuses: Record<string, InvitationStatus>;
+  status: MeetupStatus;
+  savedToPlanByMeetup: boolean;
+}
+
+export interface InviteProposal {
+  meetupId: string;
+  profileIds: string[];
+}
+
 export type ActivityStatus =
   | "running"
   | "success"
@@ -97,7 +120,9 @@ export interface ActivityEntry {
     | "get_profile"
     | "search_places"
     | "find_nearby_friends"
-    | "suggest_people_for_plan";
+    | "suggest_people_for_plan"
+    | "create_group_meetup"
+    | "send_event_invites";
   summary: string;
   detail: string;
   status: ActivityStatus;
@@ -114,6 +139,11 @@ export interface CityState {
   savedEventIds: string[];
   pendingConfirmationId: string | null;
   socialView: SocialViewState;
+  meetup: GroupMeetup | null;
+  pendingMeetupProposal: MeetupDraft | null;
+  meetupApprovalGranted: boolean;
+  pendingInviteProposal: InviteProposal | null;
+  inviteApprovalGranted: boolean;
   activities: ActivityEntry[];
 }
 
@@ -143,4 +173,18 @@ export interface FindNearbyFriendsInput {
 export interface SuggestPeopleForPlanInput {
   eventId?: string;
   maxPeople?: number;
+}
+
+export interface CreateGroupMeetupInput {
+  eventId?: string;
+  placeId?: string;
+  profileIds?: string[];
+  time?: string;
+  confirmed: boolean;
+}
+
+export interface SendEventInvitesInput {
+  meetupId?: string;
+  profileIds?: string[];
+  confirmed: boolean;
 }

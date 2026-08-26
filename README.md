@@ -8,7 +8,7 @@ This repository is inspired by the broader MySoci product vision, but it is tech
 
 ## Current milestone
 
-This milestone extends the independently buildable foundation with a privacy-aware social layer:
+This milestone extends the independently buildable foundation with a privacy-aware social layer and a confirmed meetup loop:
 
 - a polished no-login Judge Mode shell with deterministic seeded city data;
 - a read-only WebMCP tool, `search_events`;
@@ -19,9 +19,13 @@ This milestone extends the independently buildable foundation with a privacy-awa
 - relationship-aware suggestions that combine event interests, friend/connection edges, availability, coarse presence, and fictional meetup places;
 - privacy behavior for hidden, city-only, and nearby presence without person coordinates;
 - explicit confirmation semantics and a reversible saved-plan action;
+- a two-step, human-confirmed `create_group_meetup` action;
+- a two-step, human-confirmed `send_event_invites` sandbox action that only marks fictional invites pending;
+- visible meetup state with participant editing, invite status, and cancel/restore behavior;
+- two deterministic Judge Mode scenarios plus reset/replay;
 - local unit/integration tests and a production build.
 
-Invitations, group meetup creation, commerce, travel, authentication, real GPS, external services, and deployment are intentionally out of scope for this milestone.
+Real messaging, commerce, travel, authentication, real GPS, external services, and deployment are intentionally out of scope for this milestone.
 
 ## WebMCP approach
 
@@ -44,6 +48,8 @@ The tools are intentionally small and composable:
 - `search_events` is read-only and filters deterministic events by words, interests, day, and maximum price.
 - `save_event_to_plan` is state-changing. Its first call requests visible human approval; only a confirmed second call writes to the shared plan, which the human can undo.
 - `suggest_people_for_plan` uses the current selected event when `eventId` is omitted, then returns privacy-safe people and nearby fictional places with human-readable reasons.
+- `create_group_meetup` first creates a visible proposal. Only a human click in the shared UI grants the approval latch that permits the follow-up `confirmed: true` call; it adds the event to the shared plan and keeps fictional invitations unprepared.
+- `send_event_invites` applies the same visible approval contract and changes only deterministic invitation statuses to `pending`; it never contacts a person or external service.
 
 See [the verification record](./docs/WEBMCP_VERIFICATION.md) for native discovery and invocation evidence.
 
@@ -85,7 +91,7 @@ For local native WebMCP testing in supported Chrome builds, enable `chrome://fla
 
 - All first-slice content is deterministic local seed data.
 - No login, backend, database, payment, analytics, advertising, or external runtime API is required.
-- No real people, purchases, invitations, or production actions are represented.
+- No real people, purchases, messages, or production actions are represented; invite state is a deterministic sandbox label only.
 - Social presence is deliberately coarse: hidden profiles expose no location, city-only profiles expose only the city, and nearby profiles expose only a named coarse neighborhood.
 - No secrets should be added to this repository. `.env*`, private keys, build output, and common Unity/private-project folders are ignored.
 - Generated concept art and the fictional city-atlas image in this repository were created specifically for this standalone prototype; no private MySoci assets were used.

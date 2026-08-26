@@ -20,6 +20,15 @@ This file records the chronological provenance of **MySoci Agent City** for The 
 - Added visible social cards with relationship/relevance explanations, local fictional avatars, and a human-selected-event continuation test.
 - Added automated privacy tests proving hidden profiles are never surfaced nearby, city-only profiles expose only city-level presence, and nearby profiles expose only coarse neighborhoods.
 
+## 2026-08-26 — Confirmed social meetup flow
+
+- Added strict state-changing WebMCP tools `create_group_meetup` and `send_event_invites`, both annotated `readOnlyHint: false`.
+- Enforced a visible two-step approval contract: an agent proposal (`confirmed: false`) creates an editable UI review; only the human approval control grants the in-memory approval latch required by the subsequent `confirmed: true` call.
+- Added deterministic shared meetup state for event, fictional place, selected friends, time, estimated ticket cost, and invitation statuses.
+- Added participant editing before approval, fictional invite preparation, visible cancel behavior, and deterministic reset/replay.
+- Added automated confirmation-bypass, hidden/busy/non-friend recipient, invite, undo/cancel, schema, and shared-state continuation tests.
+- Verified the full native browser path: event search → nearby friends → places → social suggestions → human participant edit → meetup approval → invite approval → cancel.
+
 ## History policy
 
 - Preserve ordinary chronological commits.

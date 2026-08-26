@@ -3,6 +3,7 @@ import { AgentActivity } from "./components/AgentActivity";
 import { CityMap } from "./components/CityMap";
 import { EventList } from "./components/EventList";
 import { CompassIcon, InfoIcon, CalendarIcon, SparkIcon } from "./components/Icons";
+import { MeetupPanel } from "./components/MeetupPanel";
 import { SaturdayPlan } from "./components/SaturdayPlan";
 import { SocialDiscovery } from "./components/SocialDiscovery";
 import { cityStore } from "./state/city-store";
@@ -86,15 +87,39 @@ export default function App() {
     if (isBusy) return;
     setIsBusy(true);
     try {
+      cityStore.reset();
       await invokeCityTool(cityStore, "search_events", {
         interests: ["ai", "electronic-music"],
         day: "saturday",
         maxPrice: 60
       });
       await runSocialSequence();
+      await invokeCityTool(cityStore, "create_group_meetup", { confirmed: false });
     } finally {
       setIsBusy(false);
     }
+  };
+
+  const runPlanDemo = async () => {
+    if (isBusy) return;
+    setIsBusy(true);
+    try {
+      cityStore.reset();
+      await invokeCityTool(cityStore, "search_events", {
+        interests: ["photography"],
+        day: "saturday",
+        maxPrice: 60
+      });
+      const eventId = cityStore.getSnapshot().selectedEventId;
+      await invokeCityTool(cityStore, "save_event_to_plan", { eventId, confirmed: false });
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const resetDemo = () => {
+    if (isBusy) return;
+    cityStore.reset();
   };
 
   const runSocialDiscovery = async () => {
@@ -124,6 +149,48 @@ export default function App() {
     setIsBusy(true);
     try {
       await invokeCityTool(cityStore, "get_profile", { profileId });
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const prepareMeetup = async () => {
+    if (isBusy) return;
+    setIsBusy(true);
+    try {
+      await invokeCityTool(cityStore, "create_group_meetup", { confirmed: false });
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const confirmMeetup = async () => {
+    if (!cityStore.getSnapshot().pendingMeetupProposal || isBusy) return;
+    cityStore.approveMeetupProposal();
+    setIsBusy(true);
+    try {
+      await invokeCityTool(cityStore, "create_group_meetup", { confirmed: true });
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const prepareInvites = async () => {
+    if (isBusy) return;
+    setIsBusy(true);
+    try {
+      await invokeCityTool(cityStore, "send_event_invites", { confirmed: false });
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const confirmInvites = async () => {
+    if (!cityStore.getSnapshot().pendingInviteProposal || isBusy) return;
+    cityStore.approveInviteProposal();
+    setIsBusy(true);
+    try {
+      await invokeCityTool(cityStore, "send_event_invites", { confirmed: true });
     } finally {
       setIsBusy(false);
     }
@@ -202,6 +269,7 @@ export default function App() {
               isBusy={isBusy}
               onFindNearby={runNearbyFriends}
               onSuggest={runSocialDiscovery}
+              onPrepareMeetup={prepareMeetup}
               onInspectProfile={inspectProfile}
             />
 
@@ -213,6 +281,16 @@ export default function App() {
               <button type="button" onClick={runJudgeDemo} disabled={isBusy}>
                 {isBusy ? "Running…" : "Send"}
               </button>
+            </div>
+
+            <div className="judge-scenarios" aria-label="Judge Mode scenarios">
+              <div>
+                <span>Judge Mode scenarios</span>
+                <small>Reset and replay seeded flows</small>
+              </div>
+              <button type="button" onClick={runJudgeDemo} disabled={isBusy}>Social meetup</button>
+              <button type="button" onClick={runPlanDemo} disabled={isBusy}>Event plan</button>
+              <button type="button" className="judge-scenarios__reset" onClick={resetDemo} disabled={isBusy}>Reset demo</button>
             </div>
           </section>
 
@@ -228,6 +306,23 @@ export default function App() {
             <SaturdayPlan
               events={savedEvents}
               onRemove={(eventId) => cityStore.removeSavedEvent(eventId)}
+            />
+            <MeetupPanel
+              event={selectedEvent}
+              events={state.events}
+              people={state.people}
+              places={state.places}
+              meetup={state.meetup}
+              pendingMeetupProposal={state.pendingMeetupProposal}
+              pendingInviteProposal={state.pendingInviteProposal}
+              isBusy={isBusy}
+              onToggleParticipant={(profileId) => cityStore.toggleMeetupParticipant(profileId)}
+              onConfirmMeetup={confirmMeetup}
+              onDismissMeetup={() => cityStore.dismissMeetupProposal()}
+              onPrepareInvites={prepareInvites}
+              onConfirmInvites={confirmInvites}
+              onDismissInvites={() => cityStore.dismissInviteProposal()}
+              onCancelMeetup={() => cityStore.cancelMeetup()}
             />
           </aside>
         </div>

@@ -10,7 +10,9 @@ import {
   type SaveEventInput,
   type SearchEventsInput,
   type SocialInterest,
-  type SuggestPeopleForPlanInput
+  type SuggestPeopleForPlanInput,
+  type CreateGroupMeetupInput,
+  type SendEventInvitesInput
 } from "../domain";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -54,6 +56,20 @@ const validateOptionalId = (input: Record<string, unknown>, key: string) => {
     (typeof input[key] !== "string" || !/^[a-z0-9-]{1,64}$/.test(input[key] as string))
   ) {
     throw new TypeError(`${key} must be a valid seeded identifier.`);
+  }
+};
+
+const validateOptionalIdArray = (input: Record<string, unknown>, key: string, maxItems: number) => {
+  if (input[key] === undefined) return;
+  if (!Array.isArray(input[key]) || input[key].length > maxItems) {
+    throw new TypeError(`${key} must be an array with at most ${maxItems} values.`);
+  }
+  const values = input[key] as unknown[];
+  if (values.some((value) => typeof value !== "string" || !/^[a-z0-9-]{1,64}$/.test(value))) {
+    throw new TypeError(`${key} contains an invalid seeded identifier.`);
+  }
+  if (new Set(values).size !== values.length) {
+    throw new TypeError(`${key} must not contain duplicates.`);
   }
 };
 
@@ -218,5 +234,48 @@ export const validateSuggestPeopleForPlanInput = (
   return {
     eventId: input.eventId as string | undefined,
     maxPeople: input.maxPeople as number | undefined
+  };
+};
+
+export const validateCreateGroupMeetupInput = (input: unknown): CreateGroupMeetupInput => {
+  if (!isRecord(input)) {
+    throw new TypeError("create_group_meetup input must be an object.");
+  }
+  assertOnlyKeys(input, ["eventId", "placeId", "profileIds", "time", "confirmed"]);
+  validateOptionalId(input, "eventId");
+  validateOptionalId(input, "placeId");
+  validateOptionalIdArray(input, "profileIds", 3);
+  if (
+    input.time !== undefined &&
+    (typeof input.time !== "string" || input.time.length > 40 || !/^\d{1,2}:\d{2} [AP]M$/.test(input.time))
+  ) {
+    throw new TypeError("time must use a seeded 12-hour time such as 8:30 PM.");
+  }
+  if (typeof input.confirmed !== "boolean") {
+    throw new TypeError("confirmed must be a boolean.");
+  }
+  return {
+    eventId: input.eventId as string | undefined,
+    placeId: input.placeId as string | undefined,
+    profileIds: input.profileIds as string[] | undefined,
+    time: input.time as string | undefined,
+    confirmed: input.confirmed
+  };
+};
+
+export const validateSendEventInvitesInput = (input: unknown): SendEventInvitesInput => {
+  if (!isRecord(input)) {
+    throw new TypeError("send_event_invites input must be an object.");
+  }
+  assertOnlyKeys(input, ["meetupId", "profileIds", "confirmed"]);
+  validateOptionalId(input, "meetupId");
+  validateOptionalIdArray(input, "profileIds", 3);
+  if (typeof input.confirmed !== "boolean") {
+    throw new TypeError("confirmed must be a boolean.");
+  }
+  return {
+    meetupId: input.meetupId as string | undefined,
+    profileIds: input.profileIds as string[] | undefined,
+    confirmed: input.confirmed
   };
 };
