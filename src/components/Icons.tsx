@@ -74,3 +74,23 @@ export const TrashIcon = (props: IconProps) => (
     <path d="M4 7h16M9 3h6l1 4H8l1-4ZM7 7l1 14h8l1-14M10 11v6M14 11v6" />
   </svg>
 );
+
+export const UsersIcon = (props: IconProps) => (
+  <svg {...base(props)}>
+    <circle cx="9" cy="8" r="3" />
+    <path d="M3.5 19c.5-3 2.3-4.5 5.5-4.5s5 1.5 5.5 4.5M16 5.5a3 3 0 0 1 0 5.7M17 14.5c2 .5 3.2 2 3.5 4.5" />
+  </svg>
+);
+
+export const ShieldIcon = (props: IconProps) => (
+  <svg {...base(props)}>
+    <path d="M12 3.2 19 6v5.4c0 4.5-2.8 7.6-7 9.4-4.2-1.8-7-4.9-7-9.4V6l7-2.8Z" />
+    <path d="m9 12 2 2 4-4" />
+  </svg>
+);
+
+export const CoffeeIcon = (props: IconProps) => (
+  <svg {...base(props)}>
+    <path d="M5 8h11v5.5A4.5 4.5 0 0 1 11.5 18h-2A4.5 4.5 0 0 1 5 13.5V8ZM16 10h1.5a2.5 2.5 0 0 1 0 5H16M4 21h14" />
+  </svg>
+);

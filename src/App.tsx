@@ -4,6 +4,7 @@ import { CityMap } from "./components/CityMap";
 import { EventList } from "./components/EventList";
 import { CompassIcon, InfoIcon, CalendarIcon, SparkIcon } from "./components/Icons";
 import { SaturdayPlan } from "./components/SaturdayPlan";
+import { SocialDiscovery } from "./components/SocialDiscovery";
 import { cityStore } from "./state/city-store";
 import { useCityStore } from "./state/use-city-store";
 import { invokeCityTool, registerCityTools } from "./webmcp/register-tools";
@@ -11,7 +12,7 @@ import { invokeCityTool, registerCityTools } from "./webmcp/register-tools";
 type RuntimeState = "checking" | "native" | "fallback" | "error";
 
 const EXAMPLE_PROMPT =
-  "Find an AI or photography event under $60, then save it to my plan.";
+  "Find an AI or music event, check nearby friends, and suggest a meetup place.";
 
 const runtimeLabel: Record<RuntimeState, string> = {
   checking: "Checking WebMCP",
@@ -54,21 +55,75 @@ export default function App() {
   );
   const pendingEvent =
     state.events.find((event) => event.id === state.pendingConfirmationId) ?? null;
+  const selectedEvent =
+    state.events.find((event) => event.id === state.selectedEventId) ?? state.events[0];
+  const recommendedPlaces = state.places.filter((place) =>
+    state.socialView.recommendedPlaceIds.includes(place.id)
+  );
+
+  const runSocialSequence = async () => {
+    const selectedEventId = cityStore.getSnapshot().selectedEventId;
+    const event = cityStore
+      .getSnapshot()
+      .events.find((candidate) => candidate.id === selectedEventId);
+    await invokeCityTool(cityStore, "search_people", {
+      interests: event?.interests,
+      availability: "available"
+    });
+    await invokeCityTool(cityStore, "find_nearby_friends", {
+      availability: "available"
+    });
+    await invokeCityTool(cityStore, "search_places", {
+      eventId: selectedEventId,
+      interests: event?.interests
+    });
+    await invokeCityTool(cityStore, "suggest_people_for_plan", {
+      maxPeople: 3
+    });
+  };
 
   const runJudgeDemo = async () => {
     if (isBusy) return;
     setIsBusy(true);
     try {
       await invokeCityTool(cityStore, "search_events", {
-        interests: ["ai", "photography"],
+        interests: ["ai", "electronic-music"],
         day: "saturday",
         maxPrice: 60
       });
-      const selectedEventId = cityStore.getSnapshot().selectedEventId;
-      await invokeCityTool(cityStore, "save_event_to_plan", {
-        eventId: selectedEventId,
-        confirmed: false
+      await runSocialSequence();
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const runSocialDiscovery = async () => {
+    if (isBusy) return;
+    setIsBusy(true);
+    try {
+      await runSocialSequence();
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const runNearbyFriends = async () => {
+    if (isBusy) return;
+    setIsBusy(true);
+    try {
+      await invokeCityTool(cityStore, "find_nearby_friends", {
+        availability: "available"
       });
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const inspectProfile = async (profileId: string) => {
+    if (isBusy) return;
+    setIsBusy(true);
+    try {
+      await invokeCityTool(cityStore, "get_profile", { profileId });
     } finally {
       setIsBusy(false);
     }
@@ -134,6 +189,20 @@ export default function App() {
               visibleEventIds={state.visibleEventIds}
               selectedEventId={state.selectedEventId}
               onSelect={cityStore.selectEvent.bind(cityStore)}
+            />
+
+            <SocialDiscovery
+              event={selectedEvent}
+              people={state.people}
+              places={recommendedPlaces}
+              relationships={state.relationships}
+              nearbyFriendIds={state.socialView.nearbyFriendIds}
+              suggestedPeopleIds={state.socialView.suggestedPeopleIds}
+              recommendedPlaceIds={state.socialView.recommendedPlaceIds}
+              isBusy={isBusy}
+              onFindNearby={runNearbyFriends}
+              onSuggest={runSocialDiscovery}
+              onInspectProfile={inspectProfile}
             />
 
             <div className="prompt-composer" aria-label="Judge Mode example prompt">

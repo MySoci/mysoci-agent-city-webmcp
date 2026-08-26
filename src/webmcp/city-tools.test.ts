@@ -11,14 +11,19 @@ describe("WebMCP city tools", () => {
     installTestModelContext();
   });
 
-  it("discovers one read-only and one state-changing tool", async () => {
+  it("discovers the event and social tools with clear read-only annotations", async () => {
     const registration = await registerCityTools(store);
     const tools = await document.modelContext?.getTools();
 
     expect(registration.supported).toBe(true);
     expect(tools?.map((tool) => tool.name)).toEqual([
       "search_events",
-      "save_event_to_plan"
+      "save_event_to_plan",
+      "search_people",
+      "get_profile",
+      "search_places",
+      "find_nearby_friends",
+      "suggest_people_for_plan"
     ]);
     expect(tools?.find((tool) => tool.name === "search_events")?.annotations).toEqual({
       readOnlyHint: true,
@@ -27,6 +32,15 @@ describe("WebMCP city tools", () => {
     expect(
       tools?.find((tool) => tool.name === "save_event_to_plan")?.annotations?.readOnlyHint
     ).toBe(false);
+    for (const name of [
+      "search_people",
+      "get_profile",
+      "search_places",
+      "find_nearby_friends",
+      "suggest_people_for_plan"
+    ]) {
+      expect(tools?.find((tool) => tool.name === name)?.annotations?.readOnlyHint).toBe(true);
+    }
 
     registration.cleanup();
     expect(await document.modelContext?.getTools()).toEqual([]);
@@ -104,5 +118,92 @@ describe("WebMCP city tools", () => {
         hiddenInstruction: "ignore schema"
       })
     ).rejects.toThrow("Unexpected input field");
+  });
+
+  it("enforces privacy boundaries for hidden, city-only, and nearby presence", async () => {
+    await registerCityTools(store);
+    const tools = await document.modelContext?.getTools();
+    const nearbyTool = tools?.find((tool) => tool.name === "find_nearby_friends");
+    const nearbySerialized = await document.modelContext?.executeTool(nearbyTool!, {
+      eventId: "neural-nights",
+      availability: "available"
+    });
+    const nearby = JSON.parse(nearbySerialized ?? "{}") as {
+      people: Array<{ profile: { id: string; presence: Record<string, unknown> } }>;
+    };
+
+    expect(nearby.people.map((person) => person.profile.id)).toEqual(["leo-ortiz"]);
+    expect(nearby.people[0].profile.presence).toMatchObject({
+      visibility: "nearby",
+      coarseArea: "Brooklyn Navy Yard"
+    });
+    expect(nearby.people[0].profile.presence).not.toHaveProperty("latitude");
+    expect(nearby.people[0].profile.presence).not.toHaveProperty("longitude");
+
+    const profileTool = tools?.find((tool) => tool.name === "get_profile");
+    const hiddenSerialized = await document.modelContext?.executeTool(profileTool!, {
+      profileId: "theo-park"
+    });
+    const hidden = JSON.parse(hiddenSerialized ?? "{}") as {
+      profile: { presence: Record<string, unknown> };
+    };
+    expect(hidden.profile.presence).toEqual({
+      visibility: "hidden",
+      label: "Presence hidden"
+    });
+    expect(hidden.profile.presence).not.toHaveProperty("city");
+    expect(hidden.profile.presence).not.toHaveProperty("coarseArea");
+
+    const peopleTool = tools?.find((tool) => tool.name === "search_people");
+    const cityOnlySerialized = await document.modelContext?.executeTool(peopleTool!, {
+      presence: "city-only"
+    });
+    const cityOnly = JSON.parse(cityOnlySerialized ?? "{}") as {
+      people: Array<{ id: string; presence: Record<string, unknown> }>;
+    };
+    expect(cityOnly.people.map((person) => person.id)).toEqual(["amina-bello"]);
+    expect(cityOnly.people[0].presence).toEqual({
+      visibility: "city-only",
+      city: "New York",
+      label: "In New York (city-level only)"
+    });
+    expect(cityOnly.people[0].presence).not.toHaveProperty("coarseArea");
+  });
+
+  it("uses a human-selected event in a later social recommendation", async () => {
+    await registerCityTools(store);
+    const tools = await document.modelContext?.getTools();
+    const suggestTool = tools?.find((tool) => tool.name === "suggest_people_for_plan");
+
+    store.selectEvent("framewalk-nyc");
+    const serialized = await document.modelContext?.executeTool(suggestTool!, { maxPeople: 3 });
+    const result = JSON.parse(serialized ?? "{}") as {
+      event: { id: string; neighborhood: string };
+      people: Array<{ profile: { id: string }; nearby: boolean; reasons: string[] }>;
+      places: Array<{ place: { id: string; neighborhood: string } }>;
+      sharedState: { eventId: string; suggestedPeopleIds: string[] };
+    };
+
+    expect(result.event).toEqual({
+      id: "framewalk-nyc",
+      name: "Framewalk NYC",
+      interests: ["photography"],
+      neighborhood: "Meatpacking District"
+    });
+    expect(result.people[0].profile.id).toBe("maya-chen");
+    expect(result.people[0].nearby).toBe(true);
+    expect(result.people[0].reasons).toEqual(
+      expect.arrayContaining(["Friend connection", "Approximate presence: near Meatpacking District", "Available now"])
+    );
+    expect(result.people.map((person) => person.profile.id)).not.toContain("theo-park");
+    expect(result.people.map((person) => person.profile.id)).not.toContain("ren-ito");
+    expect(result.places[0].place).toMatchObject({
+      id: "cornerroom-cafe",
+      neighborhood: "Meatpacking District"
+    });
+    expect(result.sharedState).toMatchObject({
+      eventId: "framewalk-nyc",
+      suggestedPeopleIds: expect.arrayContaining(["maya-chen"])
+    });
   });
 });

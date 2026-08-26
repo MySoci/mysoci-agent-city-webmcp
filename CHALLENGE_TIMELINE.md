@@ -13,6 +13,13 @@ This file records the chronological provenance of **MySoci Agent City** for The 
 - Built the first WebMCP foundation with deterministic events, native tool registration, visible Agent Activity, a confirmation-gated shared plan, and responsive Judge Mode UI.
 - Verified native discovery and invocation in the challenge in-app browser, plus lint, automated tests, and a production build.
 
+## Social Discovery + Places + Social Presence foundation
+
+- Added deterministic fictional profiles, friend/connection relationships, interests, availability, coarse privacy-aware presence, and fictional meetup places.
+- Added five strict read-only WebMCP tools and composed the event → people → presence → availability → place recommendation flow.
+- Added visible social cards with relationship/relevance explanations, local fictional avatars, and a human-selected-event continuation test.
+- Added automated privacy tests proving hidden profiles are never surfaced nearby, city-only profiles expose only city-level presence, and nearby profiles expose only coarse neighborhoods.
+
 ## History policy
 
 - Preserve ordinary chronological commits.

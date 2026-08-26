@@ -3,18 +3,30 @@ import type {
   ActivityStatus,
   CityEvent,
   CityState,
-  SearchEventsInput
+  SearchEventsInput,
+  SocialViewState
 } from "../domain";
 import { SEEDED_EVENTS } from "../data/events";
+import { SEEDED_PEOPLE, SEEDED_RELATIONSHIPS } from "../data/social";
+import { SEEDED_PLACES } from "../data/places";
 
 type Listener = () => void;
 
 const initialState = (): CityState => ({
   events: SEEDED_EVENTS,
+  people: SEEDED_PEOPLE,
+  relationships: SEEDED_RELATIONSHIPS,
+  places: SEEDED_PLACES,
   visibleEventIds: SEEDED_EVENTS.map((event) => event.id),
   selectedEventId: SEEDED_EVENTS[0].id,
   savedEventIds: [],
   pendingConfirmationId: null,
+  socialView: {
+    eventId: null,
+    nearbyFriendIds: [],
+    suggestedPeopleIds: [],
+    recommendedPlaceIds: []
+  },
   activities: []
 });
 
@@ -53,7 +65,7 @@ export class CityStore {
 
   selectEvent(eventId: string) {
     this.requireEvent(eventId);
-    this.patch({ selectedEventId: eventId });
+    this.patch({ selectedEventId: eventId, socialView: emptySocialView() });
   }
 
   searchEvents(input: SearchEventsInput) {
@@ -114,6 +126,10 @@ export class CityStore {
     });
   }
 
+  setSocialView(socialView: SocialViewState) {
+    this.patch({ socialView });
+  }
+
   beginActivity(
     toolName: ActivityEntry["toolName"],
     summary: string,
@@ -161,5 +177,12 @@ export class CityStore {
     this.listeners.forEach((listener) => listener());
   }
 }
+
+const emptySocialView = (): SocialViewState => ({
+  eventId: null,
+  nearbyFriendIds: [],
+  suggestedPeopleIds: [],
+  recommendedPlaceIds: []
+});
 
 export const cityStore = new CityStore();

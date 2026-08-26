@@ -1,5 +1,6 @@
 import type { CityStore } from "../state/city-store";
 import { createCityTools } from "./city-tools";
+import { createSocialTools } from "./social-tools";
 
 export interface WebMCPRegistration {
   supported: boolean;
@@ -14,7 +15,7 @@ export const registerCityTools = async (store: CityStore): Promise<WebMCPRegistr
   }
 
   const controller = new AbortController();
-  const tools = createCityTools(store);
+  const tools = [...createCityTools(store), ...createSocialTools(store)];
   await Promise.all(
     tools.map((tool) => context.registerTool(tool, { signal: controller.signal }))
   );
@@ -41,7 +42,9 @@ export const invokeCityTool = async (
     }
   }
 
-  const localTool = createCityTools(store).find((tool) => tool.name === name);
+  const localTool = [...createCityTools(store), ...createSocialTools(store)].find(
+    (tool) => tool.name === name
+  );
   if (!localTool) throw new Error(`Unknown city tool: ${name}`);
   return localTool.execute(input, { signal: new AbortController().signal });
 };
