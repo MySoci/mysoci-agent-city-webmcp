@@ -95,6 +95,53 @@ The URL was publicly reachable after the free Vercel Authentication “Require L
 
 This deployment is not marked as a complete WebMCP production pass. In the available in-app browser, the deployed `city-atlas.png` and fictional avatar image did not decode (`naturalWidth: 0`), although the same local preview loaded the city asset. The browser verification harness also reported `document.modelContext` as unavailable to direct page evaluation, while the application status label remained `Native WebMCP`; therefore an independent production `getTools()`/`executeTool()` invocation record cannot be claimed from this session. A follow-up production deployment request was rejected with Vercel HTTP 403 permission error, so the asset and native-bridge findings remain open blockers.
 
+## Production recovery verification — 2026-08-27
+
+The three first-deployment blockers were isolated before any fix:
+
+1. **PNG decoding:** the first connector-created deployment returned Base64 text (`iVBOR...`) as the response body while declaring `image/png`. This was an upload representation defect, not a PNG encoder/profile defect.
+2. **Direct `document.modelContext` false result:** the browser verifier's generic read-only `evaluate` API executes in an isolated world that does not expose the browser-native WebMCP global. It reported a top-level production URL but `modelContextInDocument: false`. In that same tab, the challenge browser's native `webmcp` capability immediately announced the registered document tools, returned them through `fetchTools()`, and invoked them against the production origin. The false result was therefore a verification-world limitation, not a deployed page, header, iframe, redirect, or origin-isolation defect.
+3. **Vercel 403:** the connector's authorization context could list the `MySoci` team but could not inspect/deploy the project. After device authentication, Vercel CLI identity `louisraff-2994` could inspect the existing `my-soci/mysoci-agent-city-webmcp` project and its deployment list and could create a production deployment. The account/team permission was valid; the connector context was the mismatch.
+
+The existing project was linked locally with project id `prj_GIXpsVd3X5apd5HpBy3PSqRleEP1` and org id `team_xyJHPmpLA4vzeW3latqXBFXV`. The project was not deleted, unlinked, or recreated. Its first configuration was `Other` with the default `public` output, so commit `2045014fd94e2174226ab08ac068ee25ce1ee35e` added explicit Vite/pnpm settings: `pnpm install --frozen-lockfile`, `pnpm build`, and output `dist`.
+
+### Recovered deployment
+
+- Project/team: `mysoci-agent-city-webmcp` / `MySoci` (`my-soci`, Hobby)
+- Deployment id: `dpl_8NgSmBEDCRejZsBWABHFKwtdxS3Z`
+- Deployment URL: `https://mysoci-agent-city-webmcp-dj7mad9ss-my-soci.vercel.app/`
+- Stable production URL: `https://mysoci-agent-city-webmcp.vercel.app/`
+- Environment/status: production / Ready
+- Created: `2026-08-27T02:03:40+03:00`
+- Deployed repository HEAD: `2045014fd94e2174226ab08ac068ee25ce1ee35e`
+
+The root URL returned HTTP 200 without authentication or redirect. It is top-level HTTPS, does not use `document.domain`, and returned neither `Origin-Agent-Cluster: ?0` nor a restrictive `tools` Permissions Policy header.
+
+### Asset proof
+
+| Asset | HTTP | Content-Type | Bytes | SHA-256 | PNG/decode |
+| --- | --- | --- | ---: | --- | --- |
+| `/city-atlas.png` | 200 | `image/png` | 2,935,665 | `7C903427C7C8BD1845B68147EB77CC48AB667E97E4B95D6DF8854FB3C3C3C1C3` | Binary PNG signature; 1672×941; 8-bit RGB; in-app `naturalWidth: 1672` |
+| `/social-avatar-sprite.png` | 200 | `image/png` | 2,927,467 | `AF0CFB507A89001CC67902CA5D1986253D58EBCF5651D6BC8800F8A37C5B04B9` | Binary PNG signature; 1254×1254; 8-bit RGBA; in-app `naturalWidth: 1254` |
+
+Both hashes exactly match the repository files used by the build. The artwork was not regenerated or re-encoded.
+
+### Native production WebMCP proof
+
+At `https://mysoci-agent-city-webmcp.vercel.app/`, the challenge in-app browser announced and retrieved these nine actual native tools through its document WebMCP capability: `search_events`, `save_event_to_plan`, `search_people`, `get_profile`, `search_places`, `find_nearby_friends`, `suggest_people_for_plan`, `create_group_meetup`, and `send_event_invites`. Their published schemas and `readOnlyHint` annotations matched the table above, and their origin/page URL matched the stable production origin.
+
+Native calls then proved the shared-state and safety contracts:
+
+- `search_events({ interests: ["ai", "electronic-music"], day: "saturday", maxPrice: 60 })` returned `neural-nights` and `afterlight-radio` and selected `neural-nights` in visible shared state.
+- `find_nearby_friends` returned only Leo Ortiz with coarse `Brooklyn Navy Yard` presence. `get_profile({ profileId: "theo-park" })` returned `Presence hidden` with no location. A city-only search returned Amina Bello with only `New York`.
+- A human selected `Framewalk NYC` in the UI. The next native `find_nearby_friends` call used `framewalk-nyc` and returned Maya Chen near the coarse `Meatpacking District`, proving human edit → agent continuation.
+- `suggest_people_for_plan` returned Maya plus city-only Amina and the fictional Cornerroom Café. The human later unchecked Amina; the subsequent native invite proposal contained only `maya-chen`, proving the participant edit was observed.
+- `create_group_meetup({ confirmed: false })` returned `confirmation_required`; a direct agent call with `confirmed: true` was rejected with `Human confirmation is required before creating the meetup.` Only the visible **Confirm meetup** click consumed the UI latch and created the meetup.
+- `send_event_invites({ confirmed: false })` returned an editable confirmation proposal for Maya. A direct `confirmed: true` call was rejected with `Human approval is required before preparing invitations.` Only the visible **Approve invites** click marked the deterministic invite `Invite prepared`; no message was sent.
+- Cancel and `Reset demo` returned Agent Activity, Saturday plan, and meetup state to the deterministic empty state.
+
+The primary Judge Mode scenario replayed `search_events → search_people → find_nearby_friends → search_places → suggest_people_for_plan → create_group_meetup(false)` and stopped at the unmistakable human review. The secondary event-planning scenario replayed `search_events → save_event_to_plan(false)` and stopped at **Confirm & save**. Desktop 1440×900 and mobile 390×844 production checks showed no horizontal overflow; browser console and page-error lists were empty.
+
 ## Scope boundary
 
 All results come from deterministic local seed data. No login, network service, database, production action, payment, credential, private MySoci material, or external dataset participates in this proof.

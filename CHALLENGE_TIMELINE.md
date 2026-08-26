@@ -50,6 +50,17 @@ This file records the chronological provenance of **MySoci Agent City** for The 
 - Production verification remains **blocked**: the in-app browser reported `city-atlas.png` and the fictional avatar image as undecodable (`naturalWidth: 0`), while the same local preview loaded the city asset successfully. The available verification harness also could not independently inspect `document.modelContext` on the deployed page, so a direct production `getTools()`/`executeTool()` proof could not be completed. A follow-up production deployment attempt was rejected by Vercel with HTTP 403 (`You don't have permission to create a Production Deployment for this project`).
 - No commerce, travel, authentication, external API, real-world messaging, GPS, payment, credential, private MySoci code, or private asset was introduced.
 
+## 2026-08-27 — Production blocker recovery
+
+- Reauthenticated the Vercel CLI as `louisraff-2994`, confirmed membership in the free `MySoci` team (`my-soci`), and linked the existing project `prj_GIXpsVd3X5apd5HpBy3PSqRleEP1`; no project was recreated and no paid feature was enabled.
+- Isolated the earlier Vercel 403 to the connector's authorization context. The authenticated CLI identity can inspect and deploy to the existing project, proving that the account itself has production permission.
+- Isolated the PNG failure to the first connector upload: both image responses contained Base64 text while declaring `image/png`. The repository PNG files were valid, so no artwork regeneration or re-encoding was required.
+- Added explicit Vite/pnpm deployment configuration (`pnpm install --frozen-lockfile`, `pnpm build`, output `dist`) and deployed commit `2045014fd94e2174226ab08ac068ee25ce1ee35e` through the authenticated CLI.
+- Production deployment `dpl_8NgSmBEDCRejZsBWABHFKwtdxS3Z` became ready at `2026-08-27T02:03:40+03:00`; the stable public URL is `https://mysoci-agent-city-webmcp.vercel.app/`.
+- Verified exact production PNG bytes and decode, native discovery of all nine WebMCP tools, real read-only and confirmation-gated tool calls, human edit → agent continuation, privacy boundaries, complete Judge Mode replay, cancel/reset, desktop/mobile layout, zero console entries, and zero horizontal overflow.
+- The earlier `document.modelContext` false result came from the browser verifier's isolated read-only evaluation world. In the same real in-app browser tab, the native WebMCP capability discovered and invoked the document's registered tools at the production origin; it was not an application/header/iframe failure.
+- No login requirement, password protection, paid Vercel upgrade, secret, environment variable, private MySoci material, or new product feature was introduced.
+
 ## History policy
 
 - Preserve ordinary chronological commits.
