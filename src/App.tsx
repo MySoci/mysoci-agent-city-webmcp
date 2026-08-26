@@ -3,6 +3,7 @@ import { AgentActivity } from "./components/AgentActivity";
 import { CityMap } from "./components/CityMap";
 import { EventList } from "./components/EventList";
 import { CompassIcon, InfoIcon, CalendarIcon, SparkIcon } from "./components/Icons";
+import { JudgeGuide, type JudgePhase } from "./components/JudgeGuide";
 import { MeetupPanel } from "./components/MeetupPanel";
 import { SaturdayPlan } from "./components/SaturdayPlan";
 import { SocialDiscovery } from "./components/SocialDiscovery";
@@ -61,6 +62,11 @@ export default function App() {
   const recommendedPlaces = state.places.filter((place) =>
     state.socialView.recommendedPlaceIds.includes(place.id)
   );
+  const judgePhase: JudgePhase = pendingEvent || state.pendingInviteProposal || state.meetup
+    ? "approve"
+    : state.pendingMeetupProposal || state.socialView.suggestedPeopleIds.length
+      ? "review"
+      : "discover";
 
   const runSocialSequence = async () => {
     const selectedEventId = cityStore.getSnapshot().selectedEventId;
@@ -245,6 +251,8 @@ export default function App() {
               <span>Deterministic local data</span>
             </div>
 
+            <JudgeGuide phase={judgePhase} />
+
             <CityMap
               events={state.events}
               visibleEventIds={state.visibleEventIds}
@@ -288,8 +296,8 @@ export default function App() {
                 <span>Judge Mode scenarios</span>
                 <small>Reset and replay seeded flows</small>
               </div>
-              <button type="button" onClick={runJudgeDemo} disabled={isBusy}>Social meetup</button>
-              <button type="button" onClick={runPlanDemo} disabled={isBusy}>Event plan</button>
+              <button type="button" className="judge-scenarios__primary" onClick={runJudgeDemo} disabled={isBusy}>Run social meetup</button>
+              <button type="button" onClick={runPlanDemo} disabled={isBusy}>Event planning</button>
               <button type="button" className="judge-scenarios__reset" onClick={resetDemo} disabled={isBusy}>Reset demo</button>
             </div>
           </section>
@@ -331,9 +339,9 @@ export default function App() {
           <div>
             <h2 id="about-title">A future agent layer for social discovery</h2>
             <p>
-              MySoci explores social experiences around digital cities, personalized identity,
-              and real-world discovery. This standalone challenge prototype explores how a human
-              and an agent can share one visible city plan through WebMCP.
+              MySoci explores social discovery across digital cities and real-world experiences.
+              This standalone WebMCP challenge prototype makes a future agent layer tangible: a
+              human and an agent share one visible plan, with the human approving consequential steps.
             </p>
           </div>
           <p>

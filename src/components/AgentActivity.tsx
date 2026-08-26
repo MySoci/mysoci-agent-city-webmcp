@@ -16,6 +16,13 @@ const ActivityMark = ({ status }: { status: ActivityEntry["status"] }) => (
   </span>
 );
 
+const activityKind = (toolName: ActivityEntry["toolName"]) => {
+  if (toolName === "save_event_to_plan" || toolName === "create_group_meetup" || toolName === "send_event_invites") {
+    return "Shared state";
+  }
+  return "Discovery";
+};
+
 export const AgentActivity = ({
   activities,
   runtimeLabel,
@@ -63,6 +70,9 @@ export const AgentActivity = ({
             <div className="activity-entry__body">
               <div>
                 <strong>{entry.toolName}</strong>
+                <span className={`activity-entry__kind${activityKind(entry.toolName) === "Shared state" ? " activity-entry__kind--state" : ""}`}>
+                  {activityKind(entry.toolName)}
+                </span>
                 <time>{entry.timestamp}</time>
               </div>
               <span>{entry.summary}</span>

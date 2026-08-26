@@ -23,6 +23,7 @@ This milestone extends the independently buildable foundation with a privacy-awa
 - a two-step, human-confirmed `send_event_invites` sandbox action that only marks fictional invites pending;
 - visible meetup state with participant editing, invite status, and cancel/restore behavior;
 - two deterministic Judge Mode scenarios plus reset/replay;
+- a judge-first three-step flow (Discover → Review → Approve), prominent social-meetup replay, and compact discovery/shared-state labels in Agent Activity;
 - local unit/integration tests and a production build.
 
 Real messaging, commerce, travel, authentication, real GPS, external services, and deployment are intentionally out of scope for this milestone.
@@ -50,6 +51,8 @@ The tools are intentionally small and composable:
 - `suggest_people_for_plan` uses the current selected event when `eventId` is omitted, then returns privacy-safe people and nearby fictional places with human-readable reasons.
 - `create_group_meetup` first creates a visible proposal. Only a human click in the shared UI grants the approval latch that permits the follow-up `confirmed: true` call; it adds the event to the shared plan and keeps fictional invitations unprepared.
 - `send_event_invites` applies the same visible approval contract and changes only deterministic invitation statuses to `pending`; it never contacts a person or external service.
+
+Judge Mode makes the contract legible at a glance: **Native WebMCP tools operate on the same visible application state as the human — no brittle browser automation.** The social-meetup scenario runs the real discovery tools, pauses for participant review, requires a visible human approval, and can be cancelled/reset for replay.
 
 See [the verification record](./docs/WEBMCP_VERIFICATION.md) for native discovery and invocation evidence.
 

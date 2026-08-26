@@ -15,7 +15,7 @@ The accepted design references are [`concept-desktop.png`](./design/concept-desk
 
 ## Visible-copy lock
 
-The first viewport may show: “MySoci Agent City”, “A MySoci prototype”, “Discover”, “Plan”, “About”, “Judge Mode”, “New York, this Saturday”, “Discover the city together.”, the three seeded event names, “People + places for this plan”, “Privacy-aware”, “People to ask”, “Good places to meet”, “Agent Activity”, “Saturday plan”, “Social meetup”, “Prepare meetup”, the Judge Mode scenario labels, the example prompt, “Send”, and confirmation/cancel controls required by the workflow.
+The first viewport may show: “MySoci Agent City”, “A MySoci prototype”, “Discover”, “Plan”, “About”, “Judge Mode”, “New York, this Saturday”, “Discover the city together.”, the three seeded event names, “People + places for this plan”, “Privacy-aware”, “People to ask”, “Good places to meet”, “Agent Activity”, “Saturday plan”, “Run social meetup”, “Event planning”, “Reset demo”, “Native WebMCP”, the Discover/Review/Approve guide, “Prepare meetup”, the example prompt, “Send”, and confirmation/cancel controls required by the workflow.
 
 ## Responsive behavior
 

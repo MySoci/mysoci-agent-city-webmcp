@@ -66,6 +66,14 @@ The first proposal contained Leo Ortiz and city-only Amina Bello. The human unch
 
 The review UI never offers hidden Theo Park as a participant, and tool-level validation rejects Theo, busy/non-friend Ren Ito, and any hidden recipient even if an agent supplies the id directly. City-only Amina is shown only as `New York · city-only`; nearby output contains only the coarse neighborhood label and no coordinates.
 
+## Judge Mode clarity evidence
+
+The first viewport now presents a compact three-step guide: **Discover** (events + friends), **Review** (edit the group), and **Approve** (the human confirms). The primary `Run social meetup` scenario is visually dominant, `Event planning` remains a secondary replay, and `Reset demo` returns the seeded store to its initial state.
+
+Judge Mode displays this exact explanation next to the progression: **“Native WebMCP tools operate on the same visible application state as the human — no brittle browser automation.”** Agent Activity keeps the real tool stream concise while labeling read-only calls `Discovery` and state-changing calls `Shared state`.
+
+From a clean reset in the challenge in-app browser, a judge can run the primary scenario, edit participants, approve the meetup, approve fictional invites, cancel the meetup, and reset/replay. The approval latches remain UI-only: an agent cannot self-approve by supplying a boolean.
+
 ## Current compatibility note
 
 The draft documents the `execute(input, { signal })` callback shape. During native challenge-browser verification, the client invoked the callback without the second options argument. The implementation therefore supports the draft `AbortSignal` when supplied while safely treating the options object as optional. This is a narrowly scoped compatibility allowance, not an invented replacement API.

@@ -29,6 +29,15 @@ This file records the chronological provenance of **MySoci Agent City** for The 
 - Added automated confirmation-bypass, hidden/busy/non-friend recipient, invite, undo/cancel, schema, and shared-state continuation tests.
 - Verified the full native browser path: event search → nearby friends → places → social suggestions → human participant edit → meetup approval → invite approval → cancel.
 
+## 2026-08-26 — Judge Mode clarity polish
+
+- Added a compact Discover → Review → Approve guide so a first-time judge can understand the human + agent loop from the first viewport.
+- Added the concise product explanation: “Native WebMCP tools operate on the same visible application state as the human — no brittle browser automation.”
+- Promoted the social-meetup scenario with an explicit `Run social meetup` action, retained `Event planning`, and made `Reset demo` the deterministic replay control.
+- Added restrained Agent Activity labels distinguishing discovery calls from shared-state actions, while preserving real native tool results.
+- Refined the About copy to describe this as a standalone challenge prototype exploring a future MySoci agent layer across digital cities and real-world experiences.
+- Replayed the complete flow from a clean reset in the challenge in-app browser at desktop and mobile widths; confirmed no console warnings/errors or horizontal overflow.
+
 ## History policy
 
 - Preserve ordinary chronological commits.
