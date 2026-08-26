@@ -36,6 +36,13 @@ await document.modelContext.registerTool({
 
 Tool registration is a progressive enhancement. A supported WebMCP browser gets native `document.modelContext` registration. The UI remains locally demonstrable in other browsers, while the automated WebMCP contract tests install a spec-shaped test context and prove discovery plus invocation.
 
+The two first-slice contracts are intentionally small and composable:
+
+- `search_events` is read-only and filters deterministic events by words, interests, day, and maximum price.
+- `save_event_to_plan` is state-changing. Its first call requests visible human approval; only a confirmed second call writes to the shared plan, which the human can undo.
+
+See [the verification record](./docs/WEBMCP_VERIFICATION.md) for native discovery and invocation evidence.
+
 Current primary references:
 
 - [WebMCP Community Group draft](https://webmachinelearning.github.io/webmcp/)
@@ -61,6 +68,13 @@ pnpm test
 pnpm build
 ```
 
+To serve the validated production output locally:
+
+```bash
+pnpm build
+pnpm preview
+```
+
 For local native WebMCP testing in supported Chrome builds, enable `chrome://flags/#enable-webmcp-testing` and relaunch Chrome. The Devpost challenge also identifies ChatGPT's in-app browser as a supported judging environment.
 
 ## Safety and data
@@ -69,6 +83,7 @@ For local native WebMCP testing in supported Chrome builds, enable `chrome://fla
 - No login, backend, database, payment, analytics, advertising, or external runtime API is required.
 - No real people, purchases, invitations, or production actions are represented.
 - No secrets should be added to this repository. `.env*`, private keys, build output, and common Unity/private-project folders are ignored.
+- Generated concept art and the fictional city-atlas image in this repository were created specifically for this standalone prototype; no private MySoci assets were used.
 
 ## About MySoci
 
