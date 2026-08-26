@@ -1,0 +1,33 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+test-results/
+playwright-report/
+
+# Local tooling and editor state
+.tools/
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+
+# Challenge workflow state is local-only
+.devpost-hackathon-state.json
+
+# Guard against accidental Unity/private-project material
+Library/
+Temp/
+Logs/
+UserSettings/
+*.unitypackage
+

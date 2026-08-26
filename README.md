@@ -1,0 +1,79 @@
+# MySoci Agent City
+
+**An agent-native social city powered by WebMCP**
+
+MySoci Agent City is a new, standalone WebMCP prototype created for [The WebMCP Challenge](https://webmcp.devpost.com/). Implementation began on **2026-08-26**, during the challenge submission period.
+
+This repository is inspired by the broader MySoci product vision, but it is technically and legally separate from the private MySoci/Unity project. It does not contain or depend on private MySoci code, assets, credentials, avatar or face systems, backend services, production data, or proprietary implementation details.
+
+## First-slice goal
+
+The first slice proves a narrow, independently buildable foundation:
+
+- a polished no-login Judge Mode shell with deterministic seeded city data;
+- a read-only WebMCP tool, `search_events`;
+- a state-changing WebMCP tool, `save_event_to_plan`;
+- shared React state so agent actions visibly update the same plan the human sees;
+- an Agent Activity rail for tool calls and results;
+- explicit confirmation semantics and a reversible saved-plan action;
+- local unit/integration tests and a production build.
+
+The wider people, places, meetup, commerce, and travel tool families are intentionally out of scope for this slice.
+
+## WebMCP approach
+
+The app uses the imperative draft API:
+
+```js
+await document.modelContext.registerTool({
+  name: "search_events",
+  description: "Search deterministic city events by interest, day, and price.",
+  inputSchema: { /* strict JSON Schema */ },
+  annotations: { readOnlyHint: true },
+  execute: async (input, { signal }) => { /* update activity + return data */ }
+});
+```
+
+Tool registration is a progressive enhancement. A supported WebMCP browser gets native `document.modelContext` registration. The UI remains locally demonstrable in other browsers, while the automated WebMCP contract tests install a spec-shaped test context and prove discovery plus invocation.
+
+Current primary references:
+
+- [WebMCP Community Group draft](https://webmachinelearning.github.io/webmcp/)
+- [Chrome WebMCP developer documentation](https://developer.chrome.com/docs/ai/webmcp)
+- [Chrome WebMCP security guidance](https://developer.chrome.com/docs/ai/webmcp/secure-tools)
+
+WebMCP is an emerging draft, not a W3C Standard, and remains subject to change. The current draft exposes registration through `document.modelContext.registerTool`, uses JSON Schema inputs, and defines `readOnlyHint` and `untrustedContentHint` annotations.
+
+## Local development
+
+Prerequisites: Node.js 20+ and pnpm 9+.
+
+```bash
+pnpm install
+pnpm dev
+```
+
+Validation:
+
+```bash
+pnpm lint
+pnpm test
+pnpm build
+```
+
+For local native WebMCP testing in supported Chrome builds, enable `chrome://flags/#enable-webmcp-testing` and relaunch Chrome. The Devpost challenge also identifies ChatGPT's in-app browser as a supported judging environment.
+
+## Safety and data
+
+- All first-slice content is deterministic local seed data.
+- No login, backend, database, payment, analytics, advertising, or external runtime API is required.
+- No real people, purchases, invitations, or production actions are represented.
+- No secrets should be added to this repository. `.env*`, private keys, build output, and common Unity/private-project folders are ignored.
+
+## About MySoci
+
+MySoci explores social experiences around digital cities, personalized identity, and real-world discovery. This challenge prototype explores a possible future agent layer through WebMCP without exposing proprietary MySoci implementation details.
+
+## License
+
+[MIT](./LICENSE)
