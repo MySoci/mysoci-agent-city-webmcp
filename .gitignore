@@ -9,6 +9,7 @@ playwright-report/
 .tools/
 .vscode/
 .idea/
+.vercel/
 *.log
 .DS_Store
 Thumbs.db
@@ -30,4 +31,3 @@ Temp/
 Logs/
 UserSettings/
 *.unitypackage
-
