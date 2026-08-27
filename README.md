@@ -4,9 +4,22 @@
 
 MySoci Agent City is a new, standalone WebMCP prototype created for [The WebMCP Challenge](https://webmcp.devpost.com/). Implementation began on **2026-08-26**, during the challenge submission period.
 
+**[Open the live production demo](https://mysoci-agent-city-webmcp.vercel.app)** · No login · Deterministic seeded data · No real messages or transactions
+
 This repository is inspired by the broader MySoci product vision, but it is technically and legally separate from the private MySoci/Unity project. It does not contain or depend on private MySoci code, assets, credentials, avatar or face systems, backend services, production data, or proprietary implementation details.
 
-## Current milestone
+## Try the signature flow
+
+1. Open the [production app](https://mysoci-agent-city-webmcp.vercel.app) in ChatGPT's WebMCP-capable in-app browser, or Chrome 149+ with `chrome://flags/#enable-webmcp-testing` enabled.
+2. Select **Judge Mode**, then **Run social meetup**.
+3. Watch native discovery calls appear in **Agent Activity**.
+4. Review the event, privacy-safe people, and fictional meetup place; edit the participant selection.
+5. Select **Confirm meetup**, then **Prepare invites** and **Approve invites**.
+6. Use **Cancel meetup** or **Reset demo** to replay the deterministic flow.
+
+The key contract is visible throughout: the agent and human share one application state, but only the human UI can authorize consequential actions.
+
+## What is included
 
 This milestone extends the independently buildable foundation with a privacy-aware social layer and a confirmed meetup loop:
 
@@ -26,7 +39,7 @@ This milestone extends the independently buildable foundation with a privacy-awa
 - a judge-first three-step flow (Discover → Review → Approve), prominent social-meetup replay, and compact discovery/shared-state labels in Agent Activity;
 - local unit/integration tests and a production build.
 
-Real messaging, commerce, travel, authentication, real GPS, external services, and deployment are intentionally out of scope for this milestone.
+Real messaging, commerce, travel, authentication, real GPS, payments, and external runtime services are intentionally out of scope. The validated static production build is hosted on Vercel.
 
 ## WebMCP approach
 
@@ -56,6 +69,14 @@ Judge Mode makes the contract legible at a glance: **Native WebMCP tools operate
 
 See [the verification record](./docs/WEBMCP_VERIFICATION.md) for native discovery and invocation evidence.
 
+Implementation entry points:
+
+- [`src/webmcp/register-tools.ts`](./src/webmcp/register-tools.ts) — native registration lifecycle;
+- [`src/webmcp/city-tools.ts`](./src/webmcp/city-tools.ts) — event discovery and shared-plan tools;
+- [`src/webmcp/social-tools.ts`](./src/webmcp/social-tools.ts) — privacy-safe people and place discovery;
+- [`src/webmcp/meetup-tools.ts`](./src/webmcp/meetup-tools.ts) — human-confirmed meetup and invitation actions;
+- [`src/webmcp/city-tools.test.ts`](./src/webmcp/city-tools.test.ts) — schemas, discovery, privacy, shared-state, confirmation-bypass, and cancel/reset coverage.
+
 Current primary references:
 
 - [WebMCP Community Group draft](https://webmachinelearning.github.io/webmcp/)
@@ -69,7 +90,9 @@ WebMCP is an emerging draft, not a W3C Standard, and remains subject to change. 
 Prerequisites: Node.js 20+ and pnpm 9+.
 
 ```bash
-pnpm install
+git clone https://github.com/MySoci/mysoci-agent-city-webmcp.git
+cd mysoci-agent-city-webmcp
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
@@ -92,7 +115,7 @@ For local native WebMCP testing in supported Chrome builds, enable `chrome://fla
 
 ## Safety and data
 
-- All first-slice content is deterministic local seed data.
+- All demo content is deterministic local seed data.
 - No login, backend, database, payment, analytics, advertising, or external runtime API is required.
 - No real people, purchases, messages, or production actions are represented; invite state is a deterministic sandbox label only.
 - Social presence is deliberately coarse: hidden profiles expose no location, city-only profiles expose only the city, and nearby profiles expose only a named coarse neighborhood.
