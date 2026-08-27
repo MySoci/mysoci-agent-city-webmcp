@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <radialGradient id="orb" cx="35%" cy="28%" r="75%">
+      <stop offset="0" stop-color="#38f5ff"/>
+      <stop offset=".45" stop-color="#1f76ff"/>
+      <stop offset="1" stop-color="#130c64"/>
+    </radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <style>
+    .ring{transform-origin:64px 64px; animation:spin 5s linear infinite;}
+    .line{stroke-dasharray:175 60; animation:flow 2.4s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes flow{to{stroke-dashoffset:-235}}
+    @media (prefers-reduced-motion: reduce){.ring,.line{animation:none;}}
+  </style>
+  <circle cx="64" cy="64" r="48" fill="url(#orb)" opacity=".96"/>
+  <ellipse class="ring" cx="64" cy="64" rx="56" ry="18" fill="none" stroke="#12f7ff" stroke-width="4" opacity=".65" filter="url(#glow)"/>
+  <path class="line" d="M22 64 C 36 34, 52 34, 64 64 S 92 94, 106 64 C 92 34, 76 34, 64 64 S 36 94, 22 64" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M22 64 C 36 34, 52 34, 64 64 S 92 94, 106 64 C 92 34, 76 34, 64 64 S 36 94, 22 64" fill="none" stroke="#14f7ff" stroke-width="3" stroke-linecap="round" opacity=".82"/>
+</svg>

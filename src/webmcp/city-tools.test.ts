@@ -111,6 +111,11 @@ describe("WebMCP city tools", () => {
     expect(store.getSnapshot().pendingConfirmationId).toBe("neural-nights");
     expect(store.getSnapshot().savedEventIds).toEqual([]);
 
+    await expect(document.modelContext?.executeTool(saveTool!, {
+      eventId: "neural-nights", confirmed: true
+    })).rejects.toThrow("Human approval is required");
+    expect(store.getSnapshot().savedEventIds).toEqual([]);
+    store.approvePendingSave();
     const savedSerialized = await document.modelContext?.executeTool(saveTool!, {
       eventId: "neural-nights",
       confirmed: true
@@ -123,6 +128,36 @@ describe("WebMCP city tools", () => {
 
     store.removeSavedEvent("neural-nights");
     expect(store.getSnapshot().savedEventIds).toEqual([]);
+    await expect(document.modelContext?.executeTool(saveTool!, {
+      eventId: "neural-nights", confirmed: true
+    })).rejects.toThrow("Human approval is required");
+    expect(store.getSnapshot().activities[0].status).toBe("error");
+  });
+
+  it("rejects direct event-save approval and invalidates stale, mismatched, dismissed and reset latches", async () => {
+    await registerCityTools(store);
+    const tools = await document.modelContext!.getTools();
+    const saveTool = tools.find((tool) => tool.name === "save_event_to_plan")!;
+    const save = (eventId = "neural-nights") => document.modelContext!.executeTool(saveTool, { eventId, confirmed: true });
+    await expect(save()).rejects.toThrow("Human approval is required");
+    expect(store.approvePendingSave()).toBe(false);
+
+    for (const invalidate of [
+      () => store.dismissConfirmation(),
+      () => store.reset(),
+      () => store.selectEvent("framewalk-nyc"),
+      () => store.requestSave("neural-nights")
+    ]) {
+      store.requestSave("neural-nights");
+      store.approvePendingSave();
+      invalidate();
+      await expect(save()).rejects.toThrow("Human approval is required");
+      expect(store.getSnapshot().savedEventIds).toEqual([]);
+    }
+    store.requestSave("neural-nights");
+    store.approvePendingSave();
+    await expect(save("framewalk-nyc")).rejects.toThrow("Human approval is required");
+    await expect(save()).rejects.toThrow("Human approval is required");
   });
 
   it("rejects additional properties instead of guessing", async () => {

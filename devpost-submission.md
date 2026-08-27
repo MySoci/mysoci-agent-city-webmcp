@@ -12,7 +12,7 @@ An agent-native social city powered by WebMCP
 
 ## Problem
 
-Planning a social night is fragmented across event listings, friend availability, location context, venue discovery, group coordination, and messaging. A person has to move information between disconnected interfaces, while a conventional browser agent must infer controls and scrape presentation-oriented pages. That approach is brittle, difficult to audit, and poorly suited to sensitive social context.
+For newcomers to a city and small groups of friends, choosing an event is only half the work: who is available, who is nearby without oversharing, and where should the group meet? Planning is fragmented across event listings, availability, place discovery, and coordination. People move information between disconnected interfaces, while a conventional browser agent must infer controls and scrape presentation-oriented pages. That approach is brittle and poorly suited to sensitive social context.
 
 ## Solution
 
@@ -32,6 +32,8 @@ Native tools operate on the same visible React state as the human. If the human 
 Social agents need more than access to buttons. They need structured capabilities, current shared state, explicit privacy boundaries, and meaningful human control. WebMCP lets the website declare what an agent may do through strict schemas and composable tool descriptions instead of forcing the agent to reverse-engineer the interface.
 
 This pattern can extend beyond one demo. It points toward agent layers that connect social discovery, digital cities, and real-world experiences while preserving understandable consent and privacy boundaries.
+
+The demonstrated benefit is one coherent planning loop instead of manually re-entering context across separate screens. The prototype does not yet establish user adoption, time savings, or improved real-world social outcomes; those require user research and a future live-data implementation.
 
 ## WebMCP Fit
 
@@ -65,7 +67,11 @@ Tool-level checks prevent hidden or otherwise ineligible fictional recipients fr
 
 ## MySoci Relationship
 
+**A WebMCP prototype for MySoci’s future agent layer.** This standalone challenge prototype explores capabilities designed to inform a future agent layer in the broader MySoci product. It is not the full MySoci product, and this implementation is not claimed to be integrated into production MySoci.
+
 MySoci Agent City is a new standalone prototype created during The WebMCP Challenge submission period. It is inspired by the broader private MySoci vision of social discovery, digital cities, personalized identity, and real-world experiences, but it does not contain, copy, depend on, or expose private MySoci code, assets, services, avatar technology, credentials, or proprietary implementation details. The broader MySoci product itself is not claimed to have been created during the challenge.
+
+The owner explicitly supplied the pre-existing public MySoci website icon solely for this prototype's branding. Its original artwork is used directly, with a reduced-motion accessibility rule; no other website or private-project material was imported. The software remains MIT licensed, while the name/icon are covered by the separate `TRADEMARKS.md` notice and are not granted for general brand reuse.
 
 ## How We Used AI
 
@@ -101,13 +107,15 @@ OpenAI Codex supported the full engineering workflow: official-spec research, re
 ## Testing Instructions
 
 1. Open https://mysoci-agent-city-webmcp.vercel.app in ChatGPT's WebMCP-capable in-app browser. Chrome 149+ may also be used with `chrome://flags/#enable-webmcp-testing` enabled and the browser relaunched.
-2. Select **Judge Mode**, then **Run social meetup**.
+2. Select **Judge Mode** in the header to start the social meetup replay, or select **Run social meetup** in the scenario controls.
 3. Observe native calls in **Agent Activity** as the app finds an event, eligible nearby friends, and a fictional meetup place.
 4. In **Review meetup**, change the participant selection. The agent cannot confirm this step.
 5. Select **Confirm meetup**, then **Prepare invites** and **Approve invites**. No real message is sent.
 6. Select **Cancel meetup** or **Reset demo** to verify reversible deterministic state.
 
 No login, credentials, payment, or external service is required.
+
+For independent agent proof, ask the client to discover the nine registered native tools and invoke `search_events` with `{"interests":["ai","electronic-music"],"day":"saturday","maxPrice":60}`. Select a different event in the UI, then call `find_nearby_friends` without `eventId`: the response must use your new selection. Direct `confirmed:true` calls without the corresponding human approval are rejected for all three state-changing tools. **About** is informational and leaves this shared state unchanged.
 
 ## Public Demo Link
 
@@ -136,7 +144,7 @@ Detailed storyboard and narration: [`docs/DEMO_PACKAGE.md`](./docs/DEMO_PACKAGE.
 - Production URL: verified public HTTP 200 with no authentication.
 - Native WebMCP: nine tools discovered and invoked in the challenge in-app browser.
 - Repository: public, independently buildable, and GitHub detects the MIT license.
-- Clean clone: `pnpm install --frozen-lockfile`, lint, nine tests, and production build pass.
+- Clean-clone build was verified at the preceding documentation milestone. The presentation milestone adds About isolation/focus-boundary tests and an event-save approval regression test; the current suite has thirteen tests. Independent local Chrome/Playwright keyboard verification also passed, separately from the mocked unit tests.
 - Privacy, confirmation bypass, shared-state continuation, cancel, reset, desktop, and mobile gates pass.
 - Remaining required asset: public YouTube demo video with audio, under three minutes.
 
@@ -145,6 +153,7 @@ Detailed storyboard and narration: [`docs/DEMO_PACKAGE.md`](./docs/DEMO_PACKAGE.
 - All people, events, places, meetups, and invitations are deterministic fictional challenge data.
 - No real messaging, reservation, payment, commerce, travel, authentication, GPS, or external runtime service exists.
 - WebMCP is an emerging draft and supported browser environments remain experimental.
+- Judge Mode is a deterministic replay of real registered tool calls, not an embedded general-purpose AI chat. Independent agent-client invocation is separately verified and should be visible in the video.
 - The generic browser evaluator uses an isolated world that does not expose the page's native `document.modelContext`; the challenge browser's native WebMCP capability is used for real discovery and invocation evidence.
 
 ## TODO Official Form Fields

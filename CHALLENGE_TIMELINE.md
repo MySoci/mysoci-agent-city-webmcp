@@ -61,6 +61,22 @@ This file records the chronological provenance of **MySoci Agent City** for The 
 - The earlier `document.modelContext` false result came from the browser verifier's isolated read-only evaluation world. In the same real in-app browser tab, the native WebMCP capability discovered and invoked the document's registered tools at the production origin; it was not an application/header/iframe failure.
 - No login requirement, password protection, paid Vercel upgrade, secret, environment variable, private MySoci material, or new product feature was introduced.
 
+## 2026-08-27 — Challenge brand and About presentation audit
+
+- Used the owner's explicitly supplied existing website icon only for small header branding, favicon and About. The artwork and original animation are preserved, with one reduced-motion media rule added; no other website files or private MySoci material were imported. This pre-existing brand asset is not claimed as challenge-created work.
+- Added a lightweight native About dialog, concise metadata and a brand-license distinction in `TRADEMARKS.md`; the detected root MIT software license is unchanged.
+- During actual native verification of the preceding production build, a direct `save_event_to_plan({ eventId: "neural-nights", confirmed: true })` call saved an event without a human approval latch. Earlier success-path evidence did not establish this legacy tool's bypass resistance. The presentation slice therefore includes a narrowly scoped defect correction: a pending-event-specific, single-use UI approval latch, invalidated by reset, dismissal, replacement and selection changes. The nine tool names, schemas and annotations are unchanged.
+- Re-reviewed submission copy and the 2:37 demo plan to distinguish actual native agent invocation from deterministic Judge Mode replay, and to avoid unproven audience-impact claims.
+- Local native replay again verified human participant edit → subsequent invite proposal, meetup/invite approval gates, coarse/hidden/city-only privacy and cancel/reset. Desktop and mobile presentation were checked in the challenge in-app browser. Final validation/deployment results are recorded separately; this entry does not claim a new production deployment.
+
+## 2026-08-27 — Brand clarity and independent keyboard gate
+
+- Clarified the subtitle to “A WebMCP prototype for MySoci’s future agent layer”. About explicitly distinguishes this working standalone challenge prototype from the full MySoci product; no existing production integration or challenge-era creation of the broader product is claimed.
+- With explicit user permission, ran bundled Playwright 1.62.1 against an isolated local Chrome 151.0.7922.174, without installing dependencies, using a personal browser profile, logging in, or adding a paid service.
+- Reproduced focus leaving the native dialog after its final link; added only a boundary Tab/Shift+Tab loop. Real keyboard tests then passed open, initial Close focus, five forward/reverse Tab steps, native Escape, focus restoration, visible Close and no post-close trap at desktop 1440×900 and mobile 390×844.
+- Reran lint, 13 tests, production build, native WebMCP replay, privacy and all three approval-bypass checks, human-edit continuation, console/overflow checks, secret-pattern scan and diff validation. The nine tool schemas/annotations, existing approval latches, original icon artwork and root MIT license remain intact.
+- Production is released only after the normal milestone commit and push; deployment identifiers/results are reported from the completed deployment rather than pre-recorded here.
+
 ## History policy
 
 - Preserve ordinary chronological commits.

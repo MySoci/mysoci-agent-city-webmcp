@@ -8,16 +8,20 @@ MySoci Agent City is a new, standalone WebMCP prototype created for [The WebMCP 
 
 This repository is inspired by the broader MySoci product vision, but it is technically and legally separate from the private MySoci/Unity project. It does not contain or depend on private MySoci code, assets, credentials, avatar or face systems, backend services, production data, or proprietary implementation details.
 
+**A WebMCP prototype for MySoci’s future agent layer.** MySoci Agent City explores capabilities designed to inform the broader MySoci product; it is not the full MySoci product and is not claimed to be integrated into it.
+
 ## Try the signature flow
 
 1. Open the [production app](https://mysoci-agent-city-webmcp.vercel.app) in ChatGPT's WebMCP-capable in-app browser, or Chrome 149+ with `chrome://flags/#enable-webmcp-testing` enabled.
-2. Select **Judge Mode**, then **Run social meetup**.
+2. Select **Judge Mode** in the header, or **Run social meetup** in the scenario controls. Either starts the same primary replay.
 3. Watch native discovery calls appear in **Agent Activity**.
 4. Review the event, privacy-safe people, and fictional meetup place; edit the participant selection.
 5. Select **Confirm meetup**, then **Prepare invites** and **Approve invites**.
 6. Use **Cancel meetup** or **Reset demo** to replay the deterministic flow.
 
 The key contract is visible throughout: the agent and human share one application state, but only the human UI can authorize consequential actions.
+
+**About** opens a keyboard-accessible dialog explaining the prototype, WebMCP, human control, and the broader MySoci vision. It does not change the shared plan. The header's Judge Mode button directly starts the primary replay; there is no separate setup screen.
 
 ## What is included
 
@@ -60,7 +64,7 @@ Tool registration is a progressive enhancement. A supported WebMCP browser gets 
 The tools are intentionally small and composable:
 
 - `search_events` is read-only and filters deterministic events by words, interests, day, and maximum price.
-- `save_event_to_plan` is state-changing. Its first call requests visible human approval; only a confirmed second call writes to the shared plan, which the human can undo.
+- `save_event_to_plan` is state-changing. Its first call requests visible human approval; only the human UI grants the single-use approval latch needed by the confirmed second call. The human can undo the saved event.
 - `suggest_people_for_plan` uses the current selected event when `eventId` is omitted, then returns privacy-safe people and nearby fictional places with human-readable reasons.
 - `create_group_meetup` first creates a visible proposal. Only a human click in the shared UI grants the approval latch that permits the follow-up `confirmed: true` call; it adds the event to the shared plan and keeps fictional invitations unprepared.
 - `send_event_invites` applies the same visible approval contract and changes only deterministic invitation statuses to `pending`; it never contacts a person or external service.
@@ -121,6 +125,7 @@ For local native WebMCP testing in supported Chrome builds, enable `chrome://fla
 - Social presence is deliberately coarse: hidden profiles expose no location, city-only profiles expose only the city, and nearby profiles expose only a named coarse neighborhood.
 - No secrets should be added to this repository. `.env*`, private keys, build output, and common Unity/private-project folders are ignored.
 - Generated concept art and the fictional city-atlas image in this repository were created specifically for this standalone prototype; no private MySoci assets were used.
+- The owner separately supplied the existing MySoci website icon for header, favicon and About branding. Its artwork and native animation are preserved; only a reduced-motion media rule was added. This pre-existing brand asset is not claimed as challenge-created artwork. No other website files were imported.
 
 ## About MySoci
 
@@ -128,4 +133,4 @@ MySoci explores social experiences around digital cities, personalized identity,
 
 ## License
 
-[MIT](./LICENSE)
+Software source: [MIT](./LICENSE). The root license is unchanged. The MySoci name and owner-provided icon are separately protected brand assets, not generally reusable under MIT; see [TRADEMARKS.md](./TRADEMARKS.md).

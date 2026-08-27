@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AboutDialog } from "./components/AboutDialog";
 import { AgentActivity } from "./components/AgentActivity";
 import { CityMap } from "./components/CityMap";
 import { EventList } from "./components/EventList";
@@ -27,6 +28,7 @@ export default function App() {
   const state = useCityStore();
   const [runtime, setRuntime] = useState<RuntimeState>("checking");
   const [isBusy, setIsBusy] = useState(false);
+  const aboutDialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
     let active = true;
@@ -205,6 +207,7 @@ export default function App() {
   const confirmPendingEvent = async () => {
     const eventId = cityStore.getSnapshot().pendingConfirmationId;
     if (!eventId || isBusy) return;
+    cityStore.approvePendingSave();
     setIsBusy(true);
     try {
       await invokeCityTool(cityStore, "save_event_to_plan", {
@@ -220,8 +223,11 @@ export default function App() {
     <div className="app-shell">
       <header className="topbar">
         <a className="brand" href="#discover" aria-label="MySoci Agent City home">
-          <strong>MySoci Agent City</strong>
-          <span>A MySoci prototype</span>
+          <img className="brand__icon" src="/favicon.svg" width="34" height="34" alt="" />
+          <span className="brand__copy">
+            <strong>MySoci Agent City</strong>
+            <span>A WebMCP prototype for MySoci’s future agent layer</span>
+          </span>
         </a>
         <nav aria-label="Primary navigation">
           <a className="nav-link nav-link--active" href="#discover">
@@ -230,14 +236,19 @@ export default function App() {
           <a className="nav-link" href="#plan">
             <CalendarIcon /> Plan
           </a>
-          <a className="nav-link" href="#about">
+          <button className="nav-link" type="button" aria-haspopup="dialog" aria-controls="about-dialog" onClick={() => aboutDialogRef.current?.showModal()}>
             <InfoIcon /> About
-          </a>
+          </button>
         </nav>
-        <button className="judge-button" type="button" onClick={runJudgeDemo} disabled={isBusy}>
-          <SparkIcon />
-          {isBusy ? "Working…" : "Judge Mode"}
-        </button>
+        <div className="topbar__actions">
+          <button className="about-mobile" type="button" aria-label="About MySoci Agent City" title="About" aria-haspopup="dialog" aria-controls="about-dialog" onClick={() => aboutDialogRef.current?.showModal()}>
+            <InfoIcon />
+          </button>
+          <button className="judge-button" type="button" onClick={runJudgeDemo} disabled={isBusy}>
+            <SparkIcon />
+            {isBusy ? "Working…" : "Judge Mode"}
+          </button>
+        </div>
       </header>
 
       <main>
@@ -246,7 +257,7 @@ export default function App() {
             <div className="discovery__heading">
               <div>
                 <h1 id="discover-title">New York, this Saturday</h1>
-                <p>Discover the city together.</p>
+                <p>Find your event, your people, and a place to meet.</p>
               </div>
               <span>Deterministic local data</span>
             </div>
@@ -335,21 +346,9 @@ export default function App() {
           </aside>
         </div>
 
-        <section className="about" id="about" aria-labelledby="about-title">
-          <div>
-            <h2 id="about-title">A future agent layer for social discovery</h2>
-            <p>
-              MySoci explores social discovery across digital cities and real-world experiences.
-              This standalone WebMCP challenge prototype makes a future agent layer tangible: a
-              human and an agent share one visible plan, with the human approving consequential steps.
-            </p>
-          </div>
-          <p>
-            Seeded demo only. No login, private MySoci systems, external services, or real-world
-            transactions.
-          </p>
-        </section>
       </main>
+      <footer className="prototype-footer">A standalone WebMCP Challenge prototype. Seeded experiences. Human control.</footer>
+      <AboutDialog dialogRef={aboutDialogRef} />
     </div>
   );
 }

@@ -59,6 +59,7 @@ export class CityStore {
   private state: CityState = initialState();
   private listeners = new Set<Listener>();
   private activitySequence = 0;
+  private saveApprovalEventId: string | null = null;
 
   getSnapshot = () => this.state;
 
@@ -68,6 +69,7 @@ export class CityStore {
   };
 
   reset() {
+    this.saveApprovalEventId = null;
     this.state = initialState();
     this.activitySequence = 0;
     this.emit();
@@ -108,11 +110,20 @@ export class CityStore {
 
   requestSave(eventId: string) {
     this.requireEvent(eventId);
+    this.saveApprovalEventId = null;
     this.patch({ pendingConfirmationId: eventId, selectedEventId: eventId });
+  }
+
+  approvePendingSave() {
+    this.saveApprovalEventId = this.state.pendingConfirmationId;
+    return this.saveApprovalEventId !== null;
   }
 
   saveEvent(eventId: string) {
     this.requireEvent(eventId);
+    const approved = this.saveApprovalEventId === eventId && this.state.pendingConfirmationId === eventId;
+    this.saveApprovalEventId = null;
+    if (!approved) throw new Error("Human approval is required before saving this event.");
     if (this.state.savedEventIds.includes(eventId)) {
       this.patch({ pendingConfirmationId: null, selectedEventId: eventId });
       return false;
@@ -127,6 +138,7 @@ export class CityStore {
   }
 
   dismissConfirmation() {
+    this.saveApprovalEventId = null;
     this.patch({ pendingConfirmationId: null });
   }
 
@@ -276,6 +288,9 @@ export class CityStore {
   }
 
   private patch(patch: Partial<CityState>) {
+    if (patch.selectedEventId && patch.selectedEventId !== this.state.selectedEventId) {
+      this.saveApprovalEventId = null;
+    }
     this.state = { ...this.state, ...patch };
     this.emit();
   }

@@ -142,6 +142,40 @@ Native calls then proved the shared-state and safety contracts:
 
 The primary Judge Mode scenario replayed `search_events → search_people → find_nearby_friends → search_places → suggest_people_for_plan → create_group_meetup(false)` and stopped at the unmistakable human review. The secondary event-planning scenario replayed `search_events → save_event_to_plan(false)` and stopped at **Confirm & save**. Desktop 1440×900 and mobile 390×844 production checks showed no horizontal overflow; browser console and page-error lists were empty.
 
+## Final presentation audit and legacy save-gate correction — 2026-08-27
+
+The final audit reproduced an actual defect on the preceding canonical production build: a native `save_event_to_plan({ eventId: "neural-nights", confirmed: true })` call returned a saved event without a pending human approval. Earlier records above describe the normal save workflow, but did not prove bypass resistance for that legacy action. This is a correction to that coverage gap, not a change to historical evidence or Git history.
+
+The store now requires a single-use approval latch for the current pending event. Only **Confirm & save** grants it. Direct `confirmed: true`, a pending proposal without a human click, reused approval, mismatched event, dismissal, reset, replacement proposal and changed event selection cannot authorize a save. Rejections are recorded as errors in Agent Activity. The existing nine tool names, schemas and annotations are unchanged.
+
+Local challenge-browser native evidence for the correction:
+
+- `save_event_to_plan(true)` on a clean state was rejected with `Human approval is required before saving this event.` The same call remained rejected after a `confirmed: false` proposal, until the visible **Confirm & save** action. **Remove** then cleared the saved event.
+- `Run social meetup` composed the registered discovery tools and stopped at review. Direct native meetup approval and a hidden-person proposal were rejected. After reset/replay, the human unchecked Amina and confirmed the meetup; a subsequent native invite proposal contained only Leo. Direct invite approval was rejected until the UI action. Cancel restored the plan.
+- After another reset, a human selected Framewalk NYC. Native `find_nearby_friends` with omitted `eventId` used that selection and returned Maya near the coarse Meatpacking District. Hidden Theo returned no location; city-only Amina returned only New York.
+- The informational About dialog adds no tools and does not mutate shared state. Two component tests check its content/open/close controls and unchanged store/registry; ten tool tests cover the existing contracts and the strengthened legacy save gate. JSDOM's dialog methods are test stubs, not evidence of native keyboard behavior.
+
+The in-app browser's keyboard bridge did not execute native Tab/Escape defaults during this audit. Native dialog semantics and visible Close worked, but independent keyboard verification remains a separate gate; this record does not label it passed based on mocked events. Browser-native WebMCP discovery/invocation worked through the actual tab capability, not a test context.
+
+Final local commands passed: `pnpm lint`, `pnpm test` (12/12), `pnpm build` and `git diff --check`. The text credential-pattern scan returned zero matches across 49 tracked/unignored text files, with no prohibited secret/private-project paths. The root MIT license is byte-identical to the preceding commit. Desktop 1440×900 and mobile 390×844 checks showed no horizontal overflow, including inside the About dialog; console warnings/errors were empty. No new production deployment is claimed while keyboard verification remains open.
+
+## Brand-clarity release gate — 2026-08-27
+
+This follow-up resolves the keyboard gate left open above. With explicit user authorization, Playwright 1.62.1 launched isolated local Chrome 151.0.7922.174 (no personal profile or login), using actual `page.keyboard.press` input. At both 1440×900 and 390×844:
+
+1. Tab navigation reached the visible desktop/mobile About trigger; Enter opened a native modal.
+2. Initial focus was Close. Five Tab presses alternated source link → Close; five Shift+Tab presses alternated in reverse. Every active element stayed inside the dialog.
+3. Escape closed it natively and returned focus to the original About trigger.
+4. The next Tab reached Judge Mode, proving no remaining trap. Reopening and clicking visible Close also restored focus correctly.
+
+The first independent run reproduced focus leaving the original native dialog after the source link. `AboutDialog.tsx` now intercepts only unmodified boundary Tab/Shift+Tab while open, preserving native Escape, inert background and focus restoration. The real browser rerun, not the component-test stubs, supplies the keyboard proof. See the [WAI modal dialog keyboard pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/).
+
+The clarified subtitle and About copy identify a working standalone challenge prototype informing a future agent layer, not the full MySoci product. The header icon, favicon, reduced-motion rule and root MIT license are preserved.
+
+Final local regression: lint PASS; 13/13 tests PASS; production build PASS; diff check PASS; credential-pattern scan of 49 tracked/unignored text files had zero matches and zero prohibited paths. Native in-app discovery still exposed the same nine tool schemas/annotations. Direct native approval attempts for save, meetup and invites were rejected. Human removal of Amina produced a later invite proposal containing only Leo; approved invites remained fictional, and cancel/reset restored state. A human-selected Framewalk event was observed by the subsequent nearby-friends call (Maya, coarse Meatpacking District). Hidden Theo exposed no location; city-only Amina was never returned as nearby. Desktop/mobile screenshots, no-overflow checks and empty console warning/error lists were verified.
+
+This section records pre-commit local evidence; post-deployment identifiers and production results belong to the release report after the deployment completes.
+
 ## Scope boundary
 
 All results come from deterministic local seed data. No login, network service, database, production action, payment, credential, private MySoci material, or external dataset participates in this proof.

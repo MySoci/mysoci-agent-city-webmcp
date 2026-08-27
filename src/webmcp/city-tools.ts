@@ -143,7 +143,13 @@ export const createCityTools = (store: CityStore): WebMCPTool[] => [
         };
       }
 
-      const changed = store.saveEvent(input.eventId);
+      let changed: boolean;
+      try {
+        changed = store.saveEvent(input.eventId);
+      } catch (error) {
+        store.completeActivity(activityId, "error", (error as Error).message);
+        throw error;
+      }
       store.completeActivity(
         activityId,
         "success",
